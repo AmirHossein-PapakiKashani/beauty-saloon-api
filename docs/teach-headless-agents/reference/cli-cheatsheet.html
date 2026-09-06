@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>CLI Cheatsheet</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+  <style>body { direction: rtl; text-align: right; } pre, table { direction: ltr; text-align: left; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #ddd; padding: 0.5rem; font-size: 0.85rem; }</style>
+</head>
+<body>
+  <h1>چیت‌شیت — Headless CLI</h1>
+  <table>
+    <tr><th>Tool</th><th>Headless command</th><th>Auto-approve</th></tr>
+    <tr><td>Cline</td><td><code>cline -y "task"</code></td><td><code>-y</code></td></tr>
+    <tr><td>OpenCode</td><td><code>opencode run --auto "task"</code></td><td><code>--auto</code></td></tr>
+    <tr><td>Antigravity</td><td><code>agy --dangerously-skip-permissions ... --print "task"</code></td><td><code>--dangerously-skip-permissions</code></td></tr>
+  </table>
+  <h2>فایل‌های کلیدی</h2>
+  <pre>.agents/state/queue.json          ← صف use caseها
+.agents/state/current-prompt.txt  ← ماموریت inject
+run-backend-cycle.ps1            ← orchestrator</pre>
+  <p><a href="../lessons/0001-headless-loop-mental-model.html">درس ۱</a> · <a href="../lessons/0002-first-manual-run.html">درس ۲</a></p>
+</body>
+</html>

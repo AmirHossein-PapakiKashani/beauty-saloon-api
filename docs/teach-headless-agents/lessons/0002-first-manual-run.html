@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>Lesson 0002 — First Manual Run</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+  <style>body { direction: rtl; text-align: right; } pre { direction: ltr; text-align: left; }</style>
+</head>
+<body>
+  <nav><a href="0001-headless-loop-mental-model.html">درس قبل</a> · <a href="../reference/cli-cheatsheet.html">چیت‌شیت CLI</a></nav>
+  <h1>درس ۲: اولین اجرای دستی (یک use case)</h1>
+  <p class="subtitle">گام‌به‌گام — یکی از سه CLI را انتخاب کن</p>
+
+  <h2>گام ۰ — آماده‌سازی</h2>
+  <pre>cd E:\barber\beauty-saloon-api
+dotnet build BarberSalon.slnx
+dotnet test</pre>
+  <p>هر دو باید سبز باشند (placeholder tests کافی است).</p>
+
+  <h2>گام ۱ — DryRun (فقط نگاه)</h2>
+  <pre>.\run-backend-cycle.ps1 -DryRun</pre>
+  <p>باید ببینی: <code>GetActiveSalonServices</code> انتخاب شد و دوباره pending شد.</p>
+
+  <h2>گام ۲ — Enrich (اسکریپت)</h2>
+  <p>یک بار بدون DryRun اجرا کن و بعد از خط Enrich <strong>Ctrl+C</strong> بزن — یا فقط این را دستی بزن:</p>
+  <pre>.\run-backend-cycle.ps1</pre>
+  <p>فایل <code>.agents\state\current-prompt.txt</code> باید پر شود.</p>
+
+  <h2>گام ۳ — Inject (یکی را انتخاب کن)</h2>
+
+  <h3>A) Cline</h3>
+  <p>توجه: خط <code>$p = ...</code> خروجی چاپ نمی‌کند — فقط حافظه را پر می‌کند. بعد باید <code>cline</code> را بزنی.</p>
+  <pre>cd E:\barber\beauty-saloon-api
+$p = Get-Content .agents\state\current-prompt.txt -Raw
+Write-Host "loaded chars:" $p.Length
+cline -c E:\barber\beauty-saloon-api -t 1500 "$p"</pre>
+
+  <h3>B) OpenCode</h3>
+  <pre>cd E:\barber\beauty-saloon-api
+Get-Content .agents\state\current-prompt.txt -Raw | opencode run --auto --dir E:\barber\beauty-saloon-api</pre>
+
+  <h3>C) Antigravity (agy)</h3>
+  <pre>cd E:\barber\beauty-saloon-api
+$p = Get-Content .agents\state\current-prompt.txt -Raw
+agy --print $p --dangerously-skip-permissions --mode accept-edits --add-dir E:\barber\beauty-saloon-api</pre>
+
+  <h2>گام ۴ — Verify (خودت)</h2>
+  <pre>dotnet test E:\barber\beauty-saloon-api\</pre>
+  <p>سبز = این iteration موفق. قرمز = دوباره Inject با «fix test failures».</p>
+
+  <h2>گام ۵ — بعداً: حلقه کامل</h2>
+  <p>وقتی Inject را داخل اسکریپت wire کردی، فقط می‌زنی:</p>
+  <pre>.\run-backend-cycle.ps1</pre>
+  <p>و تا تمام شدن queue می‌چرخد.</p>
+
+  <div class="quiz">
+    <q>اولین use case صف چیست؟</q>
+    <p class="opt">الف) CreateAppointment</p>
+    <p class="opt">ب) GetActiveSalonServices</p>
+    <p class="opt">ج) SendOtp</p>
+    <details><summary>پاسخ</summary><p><strong>ب</strong></p></details>
+  </div>
+
+  <p><em>منبع: <a href="https://docs.cline.bot/usage/cli-overview">Cline CLI Headless</a></em></p>
+</body>
+</html>

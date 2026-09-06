@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>Lesson 0003 — Inject, Wire, Loop</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+  <style>body { direction: rtl; text-align: right; } pre { direction: ltr; text-align: left; }</style>
+</head>
+<body>
+  <nav><a href="0002-first-manual-run.html">درس قبل</a> · <a href="../reference/glossary.html">واژه‌نامه</a></nav>
+  <h1>درس ۳: Inject، Wire، حلقه، و -Once</h1>
+  <p class="subtitle">همان پنج گام — فقط دیگر دستی نیست</p>
+
+  <h2>تشبیه رستوران</h2>
+  <div class="box">
+    <strong>صف (queue.json)</strong> = لیست سفارش‌ها<br/>
+    <strong>Select</strong> = گارسون سفارش بعدی را برمی‌دارد<br/>
+    <strong>Enrich</strong> = دستور پخت را روی کاغذ می‌نویسد (<code>current-prompt.txt</code>)<br/>
+    <strong>Inject</strong> = کاغذ را به آشپز می‌دهد<br/>
+    <strong>Verify</strong> = کنترل کیفیت (مزه = <code>dotnet test</code>)<br/>
+    <strong>Close</strong> = سفارش را تیک می‌زند (صف آپدیت)
+  </div>
+
+  <h2>Inject یعنی چه؟</h2>
+  <p><strong>تزریق پرامپت به agent.</strong> یعنی محتوای <code>current-prompt.txt</code> را به‌عنوان مأموریت به Cline/OpenCode/AGY بدهی تا کد بزند.</p>
+  <p>قبلاً تو این کار را دستی می‌کردی. الان اسکریپت همان کار را صدا می‌زند.</p>
+
+  <h2>Wire یعنی چه؟</h2>
+  <p><strong>سیم‌کشی / وصل کردن.</strong> قبلاً جای Inject فقط یک پیام stub بود («اینجا CLI را بگذار»). Wire کردن = آن بخش خالی را با فراخوانی واقعی <code>cline</code> / <code>opencode</code> / <code>agy</code> پر کردیم.</p>
+
+  <h2>حلقه چیست؟</h2>
+  <pre>while هنوز pending هست:
+    Select → Enrich → Inject → Verify → Close
+    (اگر -Once: بعد از یک دور بایست)</pre>
+  <p>فایل: <code>run-backend-cycle.ps1</code> — این «مدیر کارگاه» است، نه خود LLM.</p>
+
+  <h2><code>-Agent cline -Once</code> چه می‌کند؟</h2>
+  <ul>
+    <li><code>-Agent cline</code> = آشپز این دور Cline باشد (نه OpenCode، نه AGY)</li>
+    <li><code>-Once</code> = فقط <strong>یک</strong> use case؛ بعد بایست (برای اولین اجرای خودکار امن‌تر است)</li>
+  </ul>
+  <pre>.\run-backend-cycle.ps1 -Agent cline -Once</pre>
+
+  <h2>موازی چند agent؟</h2>
+  <p>روی <strong>یک</strong> پوشهٔ مشترک همزمان = خطر تداخل فایل. الگوی درست: هر agent یک <strong>worktree/شاخه جدا</strong> + use caseهای بدون وابستگی مشترک.</p>
+
+  <div class="quiz">
+    <q>Inject کدام کار است؟</q>
+    <p class="opt">الف) نوشتن پرامپت در فایل</p>
+    <p class="opt">ب) دادن پرامپت به CLI برای کد زدن</p>
+    <p class="opt">ج) اجرای dotnet test</p>
+    <details><summary>پاسخ</summary><p><strong>ب</strong> — الف = Enrich، ج = Verify</p></details>
+  </div>
+
+  <p><em>سؤال داری؟ از agent بپرس.</em></p>
+</body>
+</html>

@@ -1,0 +1,190 @@
+{
+  "version": "1.0",
+  "wireframe": {
+    "title": "Backend Agent .agents Folder Structure (v2)",
+    "width": 1400,
+    "height": 1000,
+    "controls": [
+      {
+        "ID": "1",
+        "typeID": "BrowserWindow",
+        "x": "20",
+        "y": "20",
+        "w": "1360",
+        "h": "960",
+        "zOrder": "0",
+        "properties": {
+          "text": "beauty-saloon-api / .agents — Skills vs State vs Agents"
+        }
+      },
+      {
+        "ID": "2",
+        "typeID": "Title",
+        "x": "50",
+        "y": "80",
+        "w": "980",
+        "h": "36",
+        "zOrder": "1",
+        "properties": {
+          "text": "Folder Blueprint — Three Buckets (How / Where / Who)"
+        }
+      },
+      {
+        "ID": "3",
+        "typeID": "Label",
+        "x": "50",
+        "y": "120",
+        "w": "1200",
+        "h": "24",
+        "zOrder": "2",
+        "properties": {
+          "text": "Skills = static HOW | State = runtime WHERE | agents/ = persona WHO | Script = run-backend-cycle.ps1"
+        }
+      },
+      {
+        "ID": "4",
+        "typeID": "FieldSet",
+        "x": "50",
+        "y": "170",
+        "w": "420",
+        "h": "700",
+        "zOrder": "3",
+        "properties": {
+          "text": ".agents/ (approved v2 layout)"
+        }
+      },
+      {
+        "ID": "5",
+        "typeID": "Tree",
+        "x": "70",
+        "y": "210",
+        "w": "380",
+        "h": "520",
+        "zOrder": "4",
+        "properties": {
+          "text": "F .agents\n > rules/\n  - always-on.md\n  - architecture-laws.md\n > skills/\n  > backend-cycle/SKILL.md\n  > unit-test/SKILL.md\n  > integration-test/SKILL.md\n  > clean-code/SKILL.md\n  > code-review/SKILL.md\n  > architecture-check/\n  > storyteller/SKILL.md\n  > storyconnector/SKILL.md\n  > eventwriter/SKILL.md\n  > scenariowriter/SKILL.md\n  > prompt-engineer/\n  > handoff/\n > state/\n  - queue.json\n  - progress.md\n  - current-plan.md\n  - current-prompt.txt\n  > handoff-reports/\n > plans/\n  - target.md\n  - phases.md\n  - bootstrap.md\n > agents/\n  - orchestrator.md\n  - implementer.md\n  - reviewer.md\n  - tester.md\n > logs/"
+        }
+      },
+      {
+        "ID": "6",
+        "typeID": "Label",
+        "x": "70",
+        "y": "750",
+        "w": "380",
+        "h": "40",
+        "zOrder": "5",
+        "properties": {
+          "text": "Never mix Skill files with State files"
+        }
+      },
+      {
+        "ID": "7",
+        "typeID": "FieldSet",
+        "x": "500",
+        "y": "170",
+        "w": "420",
+        "h": "700",
+        "zOrder": "6",
+        "properties": {
+          "text": "beauty-saloon-api/"
+        }
+      },
+      {
+        "ID": "8",
+        "typeID": "Tree",
+        "x": "520",
+        "y": "210",
+        "w": "380",
+        "h": "400",
+        "zOrder": "7",
+        "properties": {
+          "text": "F beauty-saloon-api\n - CONTEXT.md\n - BarberSalon.slnx\n - run-backend-cycle.ps1\n > src/\n  > Domain/\n  > Application/\n  > Infrastructure/\n  > API/\n > tests/\n  > Domain.Tests/\n  > Application.Tests/\n  > IntegrationTests/\n > docs/architecture/\n  - this wireframe"
+        }
+      },
+      {
+        "ID": "9",
+        "typeID": "SubTitle",
+        "x": "520",
+        "y": "640",
+        "w": "360",
+        "h": "28",
+        "zOrder": "8",
+        "properties": {
+          "text": "Hard rules"
+        }
+      },
+      {
+        "ID": "10",
+        "typeID": "Paragraph",
+        "x": "520",
+        "y": "675",
+        "w": "380",
+        "h": "140",
+        "zOrder": "9",
+        "properties": {
+          "text": "1. IRepository lives in Domain\n2. Dotnet build + test gate every UC\n3. Ponytail / YAGNI always-on\n4. Unit of work = full vertical slice\n5. First UC = GetActiveSalonServices"
+        }
+      },
+      {
+        "ID": "11",
+        "typeID": "FieldSet",
+        "x": "950",
+        "y": "170",
+        "w": "400",
+        "h": "700",
+        "zOrder": "10",
+        "properties": {
+          "text": "API → Event → Scenario"
+        }
+      },
+      {
+        "ID": "12",
+        "typeID": "SubTitle",
+        "x": "970",
+        "y": "210",
+        "w": "360",
+        "h": "28",
+        "zOrder": "11",
+        "properties": {
+          "text": "Test coverage model"
+        }
+      },
+      {
+        "ID": "13",
+        "typeID": "Paragraph",
+        "x": "970",
+        "y": "250",
+        "w": "360",
+        "h": "200",
+        "zOrder": "12",
+        "properties": {
+          "text": "Use Case\n  → eventwriter: Events\n     (groups of API actions)\n  → scenariowriter: Scenarios\n     unit + integration cases\n  → unit-test skill\n  → integration-test skill\n\nstoryteller: front → build path\nstoryconnector: API → front map"
+        }
+      },
+      {
+        "ID": "14",
+        "typeID": "Alert",
+        "x": "970",
+        "y": "480",
+        "w": "360",
+        "h": "80",
+        "zOrder": "13",
+        "properties": {
+          "text": "Import tip: open .bmpr OR Project → Import → Wireframe JSON"
+        }
+      },
+      {
+        "ID": "15",
+        "typeID": "TextArea",
+        "x": "970",
+        "y": "590",
+        "w": "360",
+        "h": "200",
+        "zOrder": "14",
+        "properties": {
+          "text": "CLI Inject adapters:\n- OpenCode: opencode run --auto\n- Antigravity: agy --print ...\n- Hermes: hermes chat -q --yolo\n\nWire in run-backend-cycle.ps1 Phase 3"
+        }
+      }
+    ]
+  }
+}

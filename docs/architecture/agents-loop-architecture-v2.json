@@ -1,0 +1,406 @@
+{
+  "version": "1.0",
+  "wireframe": {
+    "title": "Backend Headless Agent Loop Architecture (v2)",
+    "width": 1400,
+    "height": 1050,
+    "controls": [
+      {
+        "ID": "1",
+        "typeID": "BrowserWindow",
+        "x": "20",
+        "y": "20",
+        "w": "1360",
+        "h": "1010",
+        "zOrder": "0",
+        "properties": {
+          "text": "BarberSalon — Hybrid Orchestrator C"
+        }
+      },
+      {
+        "ID": "2",
+        "typeID": "Title",
+        "x": "50",
+        "y": "80",
+        "w": "1100",
+        "h": "36",
+        "zOrder": "1",
+        "properties": {
+          "text": "Autonomous Loop — Select → Enrich → Inject → Verify → Close"
+        }
+      },
+      {
+        "ID": "3",
+        "typeID": "Label",
+        "x": "50",
+        "y": "120",
+        "w": "1250",
+        "h": "24",
+        "zOrder": "2",
+        "properties": {
+          "text": "Script owns queue/gates/tests | LLM enriches prompt only | Subagent implements | Done = green dotnet test"
+        }
+      },
+      {
+        "ID": "4",
+        "typeID": "Button",
+        "x": "50",
+        "y": "170",
+        "w": "170",
+        "h": "70",
+        "zOrder": "3",
+        "properties": {
+          "text": "0 Bootstrap\n(thin once)"
+        }
+      },
+      {
+        "ID": "5",
+        "typeID": "Button",
+        "x": "250",
+        "y": "170",
+        "w": "170",
+        "h": "70",
+        "zOrder": "4",
+        "properties": {
+          "text": "1 Select\nqueue.json"
+        }
+      },
+      {
+        "ID": "6",
+        "typeID": "Button",
+        "x": "450",
+        "y": "170",
+        "w": "170",
+        "h": "70",
+        "zOrder": "5",
+        "properties": {
+          "text": "2 Enrich\nLLM prompt"
+        }
+      },
+      {
+        "ID": "7",
+        "typeID": "Button",
+        "x": "650",
+        "y": "170",
+        "w": "170",
+        "h": "70",
+        "zOrder": "6",
+        "properties": {
+          "text": "3 Inject\nsubagent"
+        }
+      },
+      {
+        "ID": "8",
+        "typeID": "Button",
+        "x": "850",
+        "y": "170",
+        "w": "170",
+        "h": "70",
+        "zOrder": "7",
+        "properties": {
+          "text": "4 Verify\ndotnet test"
+        }
+      },
+      {
+        "ID": "9",
+        "typeID": "Button",
+        "x": "1050",
+        "y": "170",
+        "w": "170",
+        "h": "70",
+        "zOrder": "8",
+        "properties": {
+          "text": "5 Close\nhandoff"
+        }
+      },
+      {
+        "ID": "10",
+        "typeID": "Label",
+        "x": "225",
+        "y": "190",
+        "w": "20",
+        "h": "30",
+        "zOrder": "9",
+        "properties": {
+          "text": ">"
+        }
+      },
+      {
+        "ID": "11",
+        "typeID": "Label",
+        "x": "425",
+        "y": "190",
+        "w": "20",
+        "h": "30",
+        "zOrder": "10",
+        "properties": {
+          "text": ">"
+        }
+      },
+      {
+        "ID": "12",
+        "typeID": "Label",
+        "x": "625",
+        "y": "190",
+        "w": "20",
+        "h": "30",
+        "zOrder": "11",
+        "properties": {
+          "text": ">"
+        }
+      },
+      {
+        "ID": "13",
+        "typeID": "Label",
+        "x": "825",
+        "y": "190",
+        "w": "20",
+        "h": "30",
+        "zOrder": "12",
+        "properties": {
+          "text": ">"
+        }
+      },
+      {
+        "ID": "14",
+        "typeID": "Label",
+        "x": "1025",
+        "y": "190",
+        "w": "20",
+        "h": "30",
+        "zOrder": "13",
+        "properties": {
+          "text": ">"
+        }
+      },
+      {
+        "ID": "15",
+        "typeID": "Label",
+        "x": "50",
+        "y": "260",
+        "w": "1100",
+        "h": "24",
+        "zOrder": "14",
+        "properties": {
+          "text": "loop: if pending remain → back to Select   |   DONE when queue has no pending"
+        }
+      },
+      {
+        "ID": "16",
+        "typeID": "FieldSet",
+        "x": "50",
+        "y": "310",
+        "w": "400",
+        "h": "320",
+        "zOrder": "15",
+        "properties": {
+          "text": "Orchestrator Script"
+        }
+      },
+      {
+        "ID": "17",
+        "typeID": "TextArea",
+        "x": "70",
+        "y": "350",
+        "w": "360",
+        "h": "250",
+        "zOrder": "16",
+        "properties": {
+          "text": "run-backend-cycle.ps1\n\n• INIT / RESUME / DONE / BLOCKED\n• dependency-aware Select\n• reset stuck in-progress\n• write current-prompt.txt\n• call CLI inject\n• dotnet test (max 3 retries)\n• update queue + progress"
+        }
+      },
+      {
+        "ID": "18",
+        "typeID": "FieldSet",
+        "x": "480",
+        "y": "310",
+        "w": "400",
+        "h": "320",
+        "zOrder": "17",
+        "properties": {
+          "text": "Enrich (LLM)"
+        }
+      },
+      {
+        "ID": "19",
+        "typeID": "TextArea",
+        "x": "500",
+        "y": "350",
+        "w": "360",
+        "h": "250",
+        "zOrder": "18",
+        "properties": {
+          "text": "Reads:\n  CONTEXT.md\n  architecture-laws\n  base-template\n  eventwriter + scenariowriter\n  storyteller\n\nWrites:\n  current-prompt.txt\n  current-plan.md\n\nCANNOT pick next use case"
+        }
+      },
+      {
+        "ID": "20",
+        "typeID": "FieldSet",
+        "x": "910",
+        "y": "310",
+        "w": "400",
+        "h": "320",
+        "zOrder": "19",
+        "properties": {
+          "text": "Implementer Subagent"
+        }
+      },
+      {
+        "ID": "21",
+        "typeID": "TextArea",
+        "x": "930",
+        "y": "350",
+        "w": "360",
+        "h": "250",
+        "zOrder": "20",
+        "properties": {
+          "text": "Reads current-prompt.txt first\n\n1 Domain (+ IRepository)\n2 Application Handler\n3 Infrastructure Repo\n4 API Controller\n5 Unit tests\n6 Integration tests\n\nOut-of-scope enforced\nHandoff on green"
+        }
+      },
+      {
+        "ID": "22",
+        "typeID": "SubTitle",
+        "x": "50",
+        "y": "660",
+        "w": "500",
+        "h": "28",
+        "zOrder": "21",
+        "properties": {
+          "text": "Personas (.agents/agents/)"
+        }
+      },
+      {
+        "ID": "23",
+        "typeID": "Button",
+        "x": "50",
+        "y": "700",
+        "w": "200",
+        "h": "60",
+        "zOrder": "22",
+        "properties": {
+          "text": "Orchestrator\nmanage loop"
+        }
+      },
+      {
+        "ID": "24",
+        "typeID": "Button",
+        "x": "280",
+        "y": "700",
+        "w": "200",
+        "h": "60",
+        "zOrder": "23",
+        "properties": {
+          "text": "Implementer\nTDD + layers"
+        }
+      },
+      {
+        "ID": "25",
+        "typeID": "Button",
+        "x": "510",
+        "y": "700",
+        "w": "200",
+        "h": "60",
+        "zOrder": "24",
+        "properties": {
+          "text": "Reviewer\narch checklist"
+        }
+      },
+      {
+        "ID": "26",
+        "typeID": "Button",
+        "x": "740",
+        "y": "700",
+        "w": "200",
+        "h": "60",
+        "zOrder": "25",
+        "properties": {
+          "text": "Tester\nscenario cover"
+        }
+      },
+      {
+        "ID": "27",
+        "typeID": "FieldSet",
+        "x": "980",
+        "y": "660",
+        "w": "330",
+        "h": "200",
+        "zOrder": "26",
+        "properties": {
+          "text": "Gates"
+        }
+      },
+      {
+        "ID": "28",
+        "typeID": "Paragraph",
+        "x": "1000",
+        "y": "700",
+        "w": "290",
+        "h": "140",
+        "zOrder": "27",
+        "properties": {
+          "text": "GREEN → completed\nRED → fix ≤3 retries\nFAIL×3 → failed STOP\nDONE → no pending\nBLOCKED → unmet deps"
+        }
+      },
+      {
+        "ID": "29",
+        "typeID": "SubTitle",
+        "x": "50",
+        "y": "800",
+        "w": "600",
+        "h": "28",
+        "zOrder": "28",
+        "properties": {
+          "text": "Inject CLI adapters (Phase 3)"
+        }
+      },
+      {
+        "ID": "30",
+        "typeID": "Button",
+        "x": "50",
+        "y": "840",
+        "w": "280",
+        "h": "55",
+        "zOrder": "29",
+        "properties": {
+          "text": "OpenCode\nopencode run --auto"
+        }
+      },
+      {
+        "ID": "31",
+        "typeID": "Button",
+        "x": "360",
+        "y": "840",
+        "w": "320",
+        "h": "55",
+        "zOrder": "30",
+        "properties": {
+          "text": "Antigravity\nagy --print --skip-permissions"
+        }
+      },
+      {
+        "ID": "32",
+        "typeID": "Button",
+        "x": "710",
+        "y": "840",
+        "w": "300",
+        "h": "55",
+        "zOrder": "31",
+        "properties": {
+          "text": "Hermes\nhermes chat -q --yolo"
+        }
+      },
+      {
+        "ID": "33",
+        "typeID": "Alert",
+        "x": "50",
+        "y": "930",
+        "w": "1260",
+        "h": "50",
+        "zOrder": "32",
+        "properties": {
+          "text": "First UC: GetActiveSalonServices | Full vertical slice | Thin bootstrap | Hybrid Orchestrator C"
+        }
+      }
+    ]
+  }
+}

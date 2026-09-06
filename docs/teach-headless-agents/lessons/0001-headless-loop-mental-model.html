@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>Lesson 0001 — Mental Model</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+  <style>body { direction: rtl; text-align: right; } pre { direction: ltr; text-align: left; }</style>
+</head>
+<body>
+  <nav><a href="../reference/glossary.html">واژه‌نامه</a> · <a href="0002-first-manual-run.html">درس بعد</a></nav>
+  <h1>درس ۱: حلقه headless یعنی چه؟</h1>
+  <p class="subtitle">یک برداشت ذهنی — قبل از هر دستور terminal</p>
+
+  <h2>تشبیه: کارگاه نرم‌افزار</h2>
+  <div class="box">
+    <strong>اسکریپت PowerShell</strong> = مدیر کارگاه (تصمیم می‌گیرد «الان کدام use case»)<br/>
+    <strong>current-prompt.txt</strong> = برگهٔ کار برای کارگر<br/>
+    <strong>Cline / OpenCode / AGY</strong> = کارگر (کد می‌زند)<br/>
+    <strong>dotnet test</strong> = بازرس (فقط او می‌گوید «تمام شد» یا نه)
+  </div>
+
+  <h2>پنج فاز (Hybrid C)</h2>
+  <ol>
+    <li><strong>Select</strong> — از <code>queue.json</code> یک use case pending با وابستگی‌های سبز.</li>
+    <li><strong>Enrich</strong> — پرامپت غنی در <code>state/current-prompt.txt</code> (الان از template ساده).</li>
+    <li><strong>Inject</strong> — همان پرامپت به CLI headless داده می‌شود.</li>
+    <li><strong>Verify</strong> — <code>dotnet test</code>؛ تا سبز نشود جلو نرو.</li>
+    <li><strong>Close</strong> — <code>completed</code> در queue + use case بعدی.</li>
+  </ol>
+
+  <h2>«فعال کردن Cline» یعنی چه؟</h2>
+  <p>نه تنظیم خاصی در VS Code. یعنی از <strong>ترمینال</strong> بگویی:</p>
+  <pre>cline -y "ماموریت از current-prompt.txt"</pre>
+  <p>فلگ <code>-y</code> = headless + auto-approve (بدون UI، بدون تأیید دستی).</p>
+
+  <h2>وضعیت پروژهٔ تو الان</h2>
+  <p>فازهای ۱، ۲، ۴، ۵ در <code>run-backend-cycle.ps1</code> هست. فاز ۳ (Inject) هنوز <strong>stub</strong> است — یعنی باید یک بار دستی Inject را یاد بگیری، بعد wire کنی.</p>
+
+  <div class="quiz">
+    <q>چه کسی حق دارد use case را «تمام شده» علامت بزند؟</q>
+    <p class="opt">الف) خود agent وقتی گفت done</p>
+    <p class="opt">ب) orchestrator وقتی dotnet test سبز شد</p>
+    <p class="opt">ج) تو وقتی خسته شدی</p>
+    <details><summary>پاسخ</summary><p><strong>ب</strong> — agent دروغ مهربان می‌گوید؛ تست حقیقت است.</p></details>
+  </div>
+
+  <p><em>سؤال داری؟ در Cursor از agent بپرس — معلم session تو همان است.</em></p>
+</body>
+</html>

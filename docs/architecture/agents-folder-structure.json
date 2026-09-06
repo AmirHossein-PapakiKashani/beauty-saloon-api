@@ -1,0 +1,202 @@
+{
+  "version": "1.0",
+  "wireframe": {
+    "title": "Headless Agent Workspace & .agents Directory Blueprint",
+    "width": 1280,
+    "height": 950,
+    "controls": [
+      {
+        "ID": "1",
+        "typeID": "BrowserWindow",
+        "x": "20",
+        "y": "20",
+        "zOrder": "0",
+        "properties": {
+          "text": "Workspace Structure & .agents Directory Map (Headless Configuration)"
+        },
+        "w": "1240",
+        "h": "910"
+      },
+      {
+        "ID": "2",
+        "typeID": "Title",
+        "x": "50",
+        "y": "90",
+        "zOrder": "1",
+        "properties": {
+          "text": "Headless Agent Workspace Blueprint (.agents & Docs)"
+        },
+        "w": "800",
+        "h": "40"
+      },
+      {
+        "ID": "3",
+        "typeID": "Label",
+        "x": "50",
+        "y": "130",
+        "zOrder": "2",
+        "properties": {
+          "text": "Permanent disk memory structure for zero-context-loss autonomous execution"
+        },
+        "w": "800",
+        "h": "25"
+      },
+      {
+        "ID": "4",
+        "typeID": "FieldSet",
+        "x": "50",
+        "y": "170",
+        "zOrder": "3",
+        "properties": {
+          "text": ".agents/ Root Directory"
+        },
+        "w": "360",
+        "h": "680"
+      },
+      {
+        "ID": "5",
+        "typeID": "Tree",
+        "x": "70",
+        "y": "210",
+        "zOrder": "4",
+        "properties": {
+          "text": "F .agents\n > rules/\n  - rtk-protocol.md\n  - ponytail-minimal.md\n  - hard-boundaries.md\n  - test-first.md\n > prompts/\n  - orchestrator.template.md\n  - storyteller.template.md\n  - implementer.template.md\n  - storyconnector.template.md\n  - reviewer.template.md\n > skills/\n  - .unittest/SKILL.md\n  - .integrationtest/SKILL.md\n  - .cleancode/SKILL.md\n  - .scenariowriter/SKILL.md\n  - .eventwriter/SKILL.md\n  - .handoff/SKILL.md\n  - .architecture/SKILL.md\n > state/\n  - phase.md (Task Backlog)\n  - progress.md (Current %)\n  - active-session.json"
+        },
+        "w": "320",
+        "h": "480"
+      },
+      {
+        "ID": "6",
+        "typeID": "Label",
+        "x": "70",
+        "y": "710",
+        "zOrder": "5",
+        "properties": {
+          "text": "Single Source of Instructions & Templates for Headless Agents"
+        },
+        "w": "320",
+        "h": "40"
+      },
+      {
+        "ID": "7",
+        "typeID": "FieldSet",
+        "x": "440",
+        "y": "170",
+        "zOrder": "6",
+        "properties": {
+          "text": "Backend Repository: beauty-saloon-api/"
+        },
+        "w": "400",
+        "h": "680"
+      },
+      {
+        "ID": "8",
+        "typeID": "Tree",
+        "x": "460",
+        "y": "210",
+        "zOrder": "7",
+        "properties": {
+          "text": "F beauty-saloon-api\n - AGENTS.md (Rules & Hard Boundaries)\n - CONTEXT.md (Domain Glossary)\n - BarberSalon.sln\n > src/\n  > BarberSalon.Domain/\n  > BarberSalon.Application/\n  > BarberSalon.Infrastructure/\n  > BarberSalon.API/\n > tests/\n  > BarberSalon.Domain.Tests/\n  > BarberSalon.Application.Tests/\n > docs/\n  > examples/\n   - SalonService-complete.md\n  > architecture/\n   - agents-loop-architecture.bmpr"
+        },
+        "w": "360",
+        "h": "330"
+      },
+      {
+        "ID": "9",
+        "typeID": "SubTitle",
+        "x": "460",
+        "y": "560",
+        "zOrder": "8",
+        "properties": {
+          "text": "Verification & Governance Gate"
+        },
+        "w": "360",
+        "h": "30"
+      },
+      {
+        "ID": "10",
+        "typeID": "Paragraph",
+        "x": "460",
+        "y": "595",
+        "zOrder": "9",
+        "properties": {
+          "text": "1. XML Documentation on all public types\n2. Swagger [ProducesResponseType] coverage\n3. Zero MediatR / Zero CQRS / Zero Identity\n4. EF Core migrations strictly in Infrastructure\n5. Soft-delete only (IsActive = false)"
+        },
+        "w": "360",
+        "h": "100"
+      },
+      {
+        "ID": "11",
+        "typeID": "Button",
+        "x": "460",
+        "y": "710",
+        "zOrder": "10",
+        "properties": {
+          "text": "Strict Pre-Task Checklist Enabled"
+        },
+        "w": "360",
+        "h": "35"
+      },
+      {
+        "ID": "12",
+        "typeID": "FieldSet",
+        "x": "870",
+        "y": "170",
+        "zOrder": "11",
+        "properties": {
+          "text": "Frontend & State Memory"
+        },
+        "w": "360",
+        "h": "680"
+      },
+      {
+        "ID": "13",
+        "typeID": "Tree",
+        "x": "890",
+        "y": "210",
+        "zOrder": "12",
+        "properties": {
+          "text": "F beauty-saloon-front-V2\n > src/\n  > components/ (UI & Forms)\n  > store/ (Redux Slices)\n  > services/ (API & Mock Handlers)\n  > types/ (Contract DTOs)\n > docs/\n  - PROJECT_DOCUMENTATION.md"
+        },
+        "w": "320",
+        "h": "260"
+      },
+      {
+        "ID": "14",
+        "typeID": "SubTitle",
+        "x": "890",
+        "y": "490",
+        "zOrder": "13",
+        "properties": {
+          "text": "State & Memory Files"
+        },
+        "w": "320",
+        "h": "30"
+      },
+      {
+        "ID": "15",
+        "typeID": "TextArea",
+        "x": "890",
+        "y": "530",
+        "zOrder": "14",
+        "properties": {
+          "text": "File-based Shared Memory:\n- memory/phase.md: Current sprint tasks\n- memory/handoff.md: Last agent output\n- memory/review.md: Review verdict & notes\n- memory/progress.md: Completed % board\n\nGuarantees zero context drift across subagent sessions."
+        },
+        "w": "320",
+        "h": "180"
+      },
+      {
+        "ID": "16",
+        "typeID": "Button",
+        "x": "890",
+        "y": "730",
+        "zOrder": "15",
+        "properties": {
+          "text": "Memory System: Sync-Checked"
+        },
+        "w": "320",
+        "h": "35"
+      }
+    ]
+  }
+}

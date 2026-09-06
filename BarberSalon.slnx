@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BarberSalon.API/BarberSalon.API.csproj" />
+    <Project Path="src/BarberSalon.Application/BarberSalon.Application.csproj" />
+    <Project Path="src/BarberSalon.Domain/BarberSalon.Domain.csproj" />
+    <Project Path="src/BarberSalon.Infrastructure/BarberSalon.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BarberSalon.Application.Tests/BarberSalon.Application.Tests.csproj" />
+    <Project Path="tests/BarberSalon.Domain.Tests/BarberSalon.Domain.Tests.csproj" />
+    <Project Path="tests/BarberSalon.IntegrationTests/BarberSalon.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

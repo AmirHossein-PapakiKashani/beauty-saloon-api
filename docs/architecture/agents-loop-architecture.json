@@ -1,0 +1,346 @@
+{
+  "version": "1.0",
+  "wireframe": {
+    "title": "Headless 5-Agent Autonomous Loop Architecture",
+    "width": 1280,
+    "height": 950,
+    "controls": [
+      {
+        "ID": "1",
+        "typeID": "BrowserWindow",
+        "x": "20",
+        "y": "20",
+        "zOrder": "0",
+        "properties": {
+          "text": "Headless Agent Engine - Loop & Dispatch Architecture (BarberSalon)"
+        },
+        "w": "1240",
+        "h": "910"
+      },
+      {
+        "ID": "2",
+        "typeID": "Title",
+        "x": "50",
+        "y": "90",
+        "zOrder": "1",
+        "properties": {
+          "text": "5-Agent Autonomous Development Loop"
+        },
+        "w": "800",
+        "h": "40"
+      },
+      {
+        "ID": "3",
+        "typeID": "Label",
+        "x": "50",
+        "y": "130",
+        "zOrder": "2",
+        "properties": {
+          "text": "System State: [Continuous Autonomous Execution] | Stop Condition: [All Phase Tasks 100% Passing]"
+        },
+        "w": "800",
+        "h": "25"
+      },
+      {
+        "ID": "4",
+        "typeID": "Button",
+        "x": "1020",
+        "y": "95",
+        "zOrder": "3",
+        "properties": {
+          "text": "Loop Status: ACTIVE (Non-Stop)"
+        },
+        "w": "200",
+        "h": "35"
+      },
+      {
+        "ID": "5",
+        "typeID": "FieldSet",
+        "x": "50",
+        "y": "170",
+        "zOrder": "4",
+        "properties": {
+          "text": "Phase 1: Story & Contract Discovery"
+        },
+        "w": "340",
+        "h": "680"
+      },
+      {
+        "ID": "6",
+        "typeID": "SubTitle",
+        "x": "70",
+        "y": "205",
+        "zOrder": "5",
+        "properties": {
+          "text": "Agent 1: Storyteller"
+        },
+        "w": "300",
+        "h": "30"
+      },
+      {
+        "ID": "7",
+        "typeID": "Paragraph",
+        "x": "70",
+        "y": "240",
+        "zOrder": "6",
+        "properties": {
+          "text": "Reads Frontend components and API calls.\nDiscovers required endpoints & shapes."
+        },
+        "w": "300",
+        "h": "60"
+      },
+      {
+        "ID": "8",
+        "typeID": "DataGrid",
+        "x": "70",
+        "y": "310",
+        "zOrder": "7",
+        "properties": {
+          "text": "Level,Description,Artifact\n0. API,Raw Endpoint Shape,endpoint.md\n1. Event,Business Action (CRUD),event.md\n2. Scenario,All Success/Error Paths,scenario.md"
+        },
+        "w": "300",
+        "h": "140"
+      },
+      {
+        "ID": "9",
+        "typeID": "TextArea",
+        "x": "70",
+        "y": "470",
+        "zOrder": "8",
+        "properties": {
+          "text": "Output Contract to State:\n- Task ID: T-101\n- Event: Create Appointment\n- Scenarios: Valid booking, Overlap clash, No-show\n- Target Layer: Vertical Slice (Domain->API)"
+        },
+        "w": "300",
+        "h": "150"
+      },
+      {
+        "ID": "10",
+        "typeID": "Button",
+        "x": "70",
+        "y": "640",
+        "zOrder": "9",
+        "properties": {
+          "text": "Save to memory/phase.md -> Ready"
+        },
+        "w": "300",
+        "h": "35"
+      },
+      {
+        "ID": "11",
+        "typeID": "FieldSet",
+        "x": "420",
+        "y": "170",
+        "zOrder": "10",
+        "properties": {
+          "text": "Phase 2: Orchestration & Vertical Slice TDD"
+        },
+        "w": "440",
+        "h": "680"
+      },
+      {
+        "ID": "12",
+        "typeID": "SubTitle",
+        "x": "440",
+        "y": "205",
+        "zOrder": "11",
+        "properties": {
+          "text": "Central Brain: Orchestrator Agent"
+        },
+        "w": "400",
+        "h": "30"
+      },
+      {
+        "ID": "13",
+        "typeID": "Paragraph",
+        "x": "440",
+        "y": "240",
+        "zOrder": "12",
+        "properties": {
+          "text": "1. Reads next pending task from phase.md\n2. Injects Task Payload into .prompts/implementer.template.md\n3. Dispatches Implementer Subagent with hydrated prompt"
+        },
+        "w": "400",
+        "h": "50"
+      },
+      {
+        "ID": "14",
+        "typeID": "Canvas",
+        "x": "440",
+        "y": "300",
+        "zOrder": "13",
+        "properties": {
+          "text": "Implementer Subagent Workspace (Isolated Session)\n\n[RED] 1. Write Unit & Integration Tests first (.unittest / .integrationtest)\n[GREEN] 2. Vertical Slice Code:\n   - Domain/Entities (BaseEntity, private setters)\n   - Application/Services & Interfaces\n   - Infrastructure/EF Core Repos & Config\n   - API/Controller (XML doc + ProducesResponseType)\n[TEST] 3. Run: dotnet test -> PASS (0 Errors)\n[OUTPUT] 4. Generate handoff.md"
+        },
+        "w": "400",
+        "h": "250"
+      },
+      {
+        "ID": "15",
+        "typeID": "SubTitle",
+        "x": "440",
+        "y": "570",
+        "zOrder": "14",
+        "properties": {
+          "text": "Agent 3: Implementer Execution"
+        },
+        "w": "400",
+        "h": "30"
+      },
+      {
+        "ID": "16",
+        "typeID": "Label",
+        "x": "440",
+        "y": "605",
+        "zOrder": "15",
+        "properties": {
+          "text": "Applies: Clean Code (SOLID/DRY) + Ponytail Minimal Code"
+        },
+        "w": "400",
+        "h": "25"
+      },
+      {
+        "ID": "17",
+        "typeID": "Button",
+        "x": "440",
+        "y": "640",
+        "zOrder": "16",
+        "properties": {
+          "text": "Dispatched via invoke_subagent(Implementer)"
+        },
+        "w": "400",
+        "h": "35"
+      },
+      {
+        "ID": "18",
+        "typeID": "FieldSet",
+        "x": "890",
+        "y": "170",
+        "zOrder": "17",
+        "properties": {
+          "text": "Phase 3: Integration & Quality Gate"
+        },
+        "w": "340",
+        "h": "680"
+      },
+      {
+        "ID": "19",
+        "typeID": "SubTitle",
+        "x": "910",
+        "y": "205",
+        "zOrder": "18",
+        "properties": {
+          "text": "Agent 4: Storyconnector"
+        },
+        "w": "300",
+        "h": "30"
+      },
+      {
+        "ID": "20",
+        "typeID": "Paragraph",
+        "x": "910",
+        "y": "240",
+        "zOrder": "19",
+        "properties": {
+          "text": "Replaces frontend mock service with real API endpoint.\nRuns frontend contract verification."
+        },
+        "w": "300",
+        "h": "60"
+      },
+      {
+        "ID": "21",
+        "typeID": "SubTitle",
+        "x": "910",
+        "y": "320",
+        "zOrder": "20",
+        "properties": {
+          "text": "Agent 5: Reviewer"
+        },
+        "w": "300",
+        "h": "30"
+      },
+      {
+        "ID": "22",
+        "typeID": "Paragraph",
+        "x": "910",
+        "y": "355",
+        "zOrder": "21",
+        "properties": {
+          "text": "2-Axis Review:\n1. Standards (Architecture/CleanCode)\n2. Spec (Acceptance Criteria & Test Coverage)"
+        },
+        "w": "300",
+        "h": "50"
+      },
+      {
+        "ID": "23",
+        "typeID": "TextArea",
+        "x": "910",
+        "y": "415",
+        "zOrder": "22",
+        "properties": {
+          "text": "Review Verdict Output:\n[PASS] -> Commit to Git & Update progress.md\n[FAIL] -> Add Feedback -> Return to Implementer"
+        },
+        "w": "300",
+        "h": "110"
+      },
+      {
+        "ID": "24",
+        "typeID": "SubTitle",
+        "x": "910",
+        "y": "540",
+        "zOrder": "23",
+        "properties": {
+          "text": "Loop State Decision"
+        },
+        "w": "300",
+        "h": "30"
+      },
+      {
+        "ID": "25",
+        "typeID": "Button",
+        "x": "910",
+        "y": "580",
+        "zOrder": "24",
+        "properties": {
+          "text": "PASS: Git Commit & Next Task"
+        },
+        "w": "300",
+        "h": "40"
+      },
+      {
+        "ID": "26",
+        "typeID": "Button",
+        "x": "910",
+        "y": "630",
+        "zOrder": "25",
+        "properties": {
+          "text": "FAIL: Re-loop with Feedback"
+        },
+        "w": "300",
+        "h": "40"
+      },
+      {
+        "ID": "27",
+        "typeID": "Label",
+        "x": "910",
+        "y": "690",
+        "zOrder": "26",
+        "properties": {
+          "text": "Continuous Loop until Progress == 100%"
+        },
+        "w": "300",
+        "h": "25"
+      },
+      {
+        "ID": "28",
+        "typeID": "Alert",
+        "x": "50",
+        "y": "780",
+        "zOrder": "27",
+        "properties": {
+          "text": "GLOBAL RULES ENFORCED: RTK proxy for tokens | Codebase-Memory MCP for code search | TDD red-green verification before commit | ADHD output protocol"
+        },
+        "w": "1180",
+        "h": "50"
+      }
+    ]
+  }
+}
