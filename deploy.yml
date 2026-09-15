@@ -1,0 +1,11 @@
+name: Test Runner
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: windows
+    steps:
+      - name: Hello
+        run: echo "Runner is working!"
