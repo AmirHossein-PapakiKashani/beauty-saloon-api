@@ -16,10 +16,18 @@ jobs:
       
       - name: Find N/A in project files
         run: Get-ChildItem -Path . -Recurse -File | Select-String -Pattern "N/A" | Select-Object Path, LineNumber, Line
-
-   
+       
+      - name: Debug - dump environment
+        run: | 
+          Get-ChildItem Env: | Sort-Object Name
+      
+      - name: Debug - search for N/A in project files
+        run: |
+          Get-ChildItem -Recurse -Include *.csproj,*.props,*.targets,*.config -Path "$env:GITHUB_WORKSPACE" | Select-String -Pattern 'N/A' -SimpleMatch
+      
       - name: Restore
-        run: dotnet restore src/BarberSalon.API/BarberSalon.API.csproj
+        run: dotnet restore src/BarberSalon.API/BarberSalon.API.csproj -v:diag
+   
 
       - name: Build
         run: dotnet build src/BarberSalon.API/BarberSalon.API.csproj --configuration Release --no-restore
