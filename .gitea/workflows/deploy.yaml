@@ -11,8 +11,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Show project files
-        run: Get-ChildItem
+      - name: Find .NET projects
+        run: Get-ChildItem -Path . -Filter *.csproj -Recurse | Select-Object FullName
 
       - name: Check .NET
         run: dotnet --info
+        
+      #- name: restore
+       # run: dotenet restore Barbersalon.slnx
+
+      #- name: build
+       #  run: dotnet build BarberSalon.slnx --configuration Release --no-restore
