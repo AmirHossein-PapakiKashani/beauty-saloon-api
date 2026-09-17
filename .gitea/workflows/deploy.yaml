@@ -11,14 +11,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Find .NET projects
-        run: Get-ChildItem -Path . -Filter *.csproj -Recurse | Select-Object FullName
-
       - name: Check .NET
         run: dotnet --info
-        
-      #- name: restore
-       # run: dotenet restore Barbersalon.slnx
 
-      #- name: build
-       #  run: dotnet build BarberSalon.slnx --configuration Release --no-restore
+      - name: Restore
+        run: dotnet restore src/BarberSalon.API/BarberSalon.API.csproj
+
+      - name: Build
+        run: dotnet build src/BarberSalon.API/BarberSalon.API.csproj --configuration Release --no-restore
+
+      - name: Publish
+        run: dotnet publish src/BarberSalon.API/BarberSalon.API.csproj --configuration Release --output "$env:GITHUB_WORKSPACE\publish" --no-restore
+
+      - name: Show published files
+        run: Get-ChildItem "$env:GITHUB_WORKSPACE\publish" -Recurse
