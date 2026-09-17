@@ -13,9 +13,9 @@ jobs:
 
       - name: Check .NET
         run: dotnet --info
+      
       - name: Find N/A in project files
-        run: |
-        Get-ChildItem -Path . -Recurse -File | Select-String -Pattern "N/A" | Select-Object Path, LineNumber, Line
+        run: Get-ChildItem -Path . -Recurse -File | Select-String -Pattern "N/A" | Select-Object Path, LineNumber, Line
 
    
       - name: Restore
