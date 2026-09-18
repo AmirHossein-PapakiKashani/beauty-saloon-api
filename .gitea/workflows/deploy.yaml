@@ -6,31 +6,30 @@ on:
 jobs:
   build:
     runs-on: windows
-    env:
-      version: ""
+    
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check .NET
-        run: dotnet --info
+      # - name: Check .NET
+      #   run: dotnet --info
       
-      - name: who am i
-        run: whoami
+      # - name: who am i
+      #   run: whoami
 
-      - name: Show working directory
-        run: |
-          Write-Host "PWD: $PWD"
-          Write-Host "WORKSPACE: $env:GITHUB_WORKSPACE"
+      # - name: Show working directory
+      #   run: |
+      #     Write-Host "PWD: $PWD"
+      #     Write-Host "WORKSPACE: $env:GITHUB_WORKSPACE"
 
-      - name: Debug - dump environment
-        run: | 
-          Get-ChildItem Env: | Sort-Object Name
+      # - name: Debug - dump environment
+      #   run: | 
+      #     Get-ChildItem Env: | Sort-Object Name
       
-      - name: Test restore manually
-        run: dotnet restore src/BarberSalon.API/BarberSalon.API.csproj -v:n
-        working-directory: C:\temp\luminous
+      # - name: Test restore manually
+      #   run: dotnet restore src/BarberSalon.API/BarberSalon.API.csproj -v:n
+      #   working-directory: C:\temp\luminous
 
       - name: Restore
         run: dotnet restore src/BarberSalon.API/BarberSalon.API.csproj -bl:C:\temp\restore.binlog
