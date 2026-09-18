@@ -14,6 +14,9 @@ jobs:
       - name: Check .NET
         run: dotnet --info
       
+      - name: who am i
+        run: whoami
+        
       - name: Show working directory
         run: |
           Write-Host "PWD: $PWD"
