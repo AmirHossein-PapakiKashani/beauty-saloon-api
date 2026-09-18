@@ -6,39 +6,35 @@ on:
 jobs:
   build:
     runs-on: windows
+
     env:
       version: ""
+      DEPLOY_PATH: |
+       "C:\inetpub\wwwroot\luminous"
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # - name: Check .NET
-      #   run: dotnet --info
-      
-      # - name: who am i
-      #   run: whoami
-
-      # - name: Show working directory
-      #   run: |
-      #     Write-Host "PWD: $PWD"
-      #     Write-Host "WORKSPACE: $env:GITHUB_WORKSPACE"
-
-      # - name: Debug - dump environment
-      #   run: | 
-      #     Get-ChildItem Env: | Sort-Object Name
-      
-      # - name: Test restore manually
-      #   run: dotnet restore src/BarberSalon.API/BarberSalon.API.csproj -v:n
-      #   working-directory: C:\temp\luminous
-
       - name: Restore
-        run: dotnet restore src/BarberSalon.API/BarberSalon.API.csproj -bl:C:\temp\restore.binlog
+        run: dotnet restore src/BarberSalon.API/BarberSalon.API.csproj
 
       - name: Build
         run: dotnet build src/BarberSalon.API/BarberSalon.API.csproj --configuration Release --no-restore
 
+      - name: Prepare deployment folder
+        run: |
+          if (Test-Path "$env:DEPLOY_PATH") {
+              Remove-Item "$env:DEPLOY_PATH" -Recurse -Force
+          }
+
+          New-Item -ItemType Directory -Path "$env:DEPLOY_PATH" -Force
+
+          Write-Host "Deployment folder prepared:"
+          Write-Host "$env:DEPLOY_PATH"
+
       - name: Publish
-        run: dotnet publish src/BarberSalon.API/BarberSalon.API.csproj --configuration Release --output "$env:GITHUB_WORKSPACE\publish" --no-restore
+        run: dotnet publish src/BarberSalon.API/BarberSalon.API.csproj --configuration Release --output "$env:DEPLOY_PATH" --no-restore
 
       - name: Show published files
-        run: Get-ChildItem "$env:GITHUB_WORKSPACE\publish" -Recurse
+        run: Get-ChildItem "$env:DEPLOY_PATH" -Recurse
