@@ -16,7 +16,7 @@ jobs:
       
       - name: who am i
         run: whoami
-        
+
       - name: Show working directory
         run: |
           Write-Host "PWD: $PWD"
@@ -26,6 +26,10 @@ jobs:
         run: | 
           Get-ChildItem Env: | Sort-Object Name
       
+      - name: Test restore manually
+        run: dotnet restore src/BarberSalon.API/BarberSalon.API.csproj -v:n
+        working-directory: C:\temp\luminous
+
       - name: Restore
         run: dotnet restore src/BarberSalon.API/BarberSalon.API.csproj -bl:C:\temp\restore.binlog
 
