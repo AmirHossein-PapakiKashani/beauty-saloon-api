@@ -9,8 +9,6 @@ jobs:
 
     env:
       version: ""
-      DEPLOY_PATH: |
-       "C:\inetpub\wwwroot\luminous"
 
     steps:
       - name: Checkout repository
@@ -36,7 +34,7 @@ jobs:
           Write-Host "$deployPath"
 
       - name: Publish
-        run: dotnet publish src/BarberSalon.API/BarberSalon.API.csproj --configuration Release --output "$env:DEPLOY_PATH" --no-restore
+        run: dotnet publish src/BarberSalon.API/BarberSalon.API.csproj --configuration Release --output "$deployPath" --no-restore
 
       - name: Show published files
         run: Get-ChildItem "$deployPath" -Recurse
