@@ -16,7 +16,12 @@ jobs:
       
       - name: Find N/A in project files
         run: Get-ChildItem -Path . -Recurse -File | Select-String -Pattern "N/A" | Select-Object Path, LineNumber, Line
-       
+      
+      - name: Show working directory
+        run: |
+          Write-Host "PWD: $PWD"
+          Write-Host "WORKSPACE: $env:GITHUB_WORKSPACE"
+
       - name: Debug - dump environment
         run: | 
           Get-ChildItem Env: | Sort-Object Name
