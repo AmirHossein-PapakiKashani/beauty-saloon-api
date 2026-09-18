@@ -24,17 +24,19 @@ jobs:
 
       - name: Prepare deployment folder
         run: |
-          if (Test-Path "$env:DEPLOY_PATH") {
-              Remove-Item "$env:DEPLOY_PATH" -Recurse -Force
+          $deployPath = "C:\inetpub\wwwroot\luminous"
+        
+          if (Test-Path "$deployPath") {
+              Remove-Item "$deployPath" -Recurse -Force
           }
 
-          New-Item -ItemType Directory -Path "$env:DEPLOY_PATH" -Force
+          New-Item -ItemType Directory -Path "$deployPath" -Force
 
           Write-Host "Deployment folder prepared:"
-          Write-Host "$env:DEPLOY_PATH"
+          Write-Host "$deployPath"
 
       - name: Publish
         run: dotnet publish src/BarberSalon.API/BarberSalon.API.csproj --configuration Release --output "$env:DEPLOY_PATH" --no-restore
 
       - name: Show published files
-        run: Get-ChildItem "$env:DEPLOY_PATH" -Recurse
+        run: Get-ChildItem "$deployPath" -Recurse
