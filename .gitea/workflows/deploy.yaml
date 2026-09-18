@@ -34,7 +34,9 @@ jobs:
           Write-Host "$deployPath"
 
       - name: Publish
-        run: dotnet publish src/BarberSalon.API/BarberSalon.API.csproj --configuration Release --output "$deployPath" --no-restore
+        run:
+          $deployPath = "C:\inetpub\wwwroot\luminous" 
+          dotnet publish src/BarberSalon.API/BarberSalon.API.csproj --configuration Release --output "$deployPath" --no-restore
 
       - name: Show published files
         run: Get-ChildItem "$deployPath" -Recurse
