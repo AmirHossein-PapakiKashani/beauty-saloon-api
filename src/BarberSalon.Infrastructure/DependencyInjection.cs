@@ -4,6 +4,7 @@ using BarberSalon.Application.Common.Interfaces;
 using BarberSalon.Application.Customers.Interfaces;
 using BarberSalon.Application.Loyalty.Interfaces;
 using BarberSalon.Application.Portfolio.Interfaces;
+using BarberSalon.Application.Reminders.Interfaces;
 using BarberSalon.Application.Reviews.Interfaces;
 using BarberSalon.Application.SalonServices.Interfaces;
 using BarberSalon.Application.Staff.Interfaces;
@@ -48,6 +49,7 @@ public static class DependencyInjection
         services.AddScoped<IWaitlistRepository, WaitlistRepository>();
         services.AddScoped<ILoyaltyRepository, LoyaltyRepository>();
         services.AddScoped<IPortfolioRepository, PortfolioRepository>();
+        services.AddScoped<IReminderRepository, ReminderRepository>();
 
         return services;
     }

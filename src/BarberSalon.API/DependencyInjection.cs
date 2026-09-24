@@ -4,6 +4,7 @@ using BarberSalon.Application.Booking.Services;
 using BarberSalon.Application.Customers.Services;
 using BarberSalon.Application.Loyalty.Services;
 using BarberSalon.Application.Portfolio.Services;
+using BarberSalon.Application.Reminders.Services;
 using BarberSalon.Application.Reviews.Services;
 using BarberSalon.Application.SalonServices.Services;
 using BarberSalon.Application.Staff.Services;
@@ -39,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<CustomerService>();
         services.AddScoped<LoyaltyService>();
         services.AddScoped<PortfolioService>();
+        services.AddScoped<ReminderService>();
         services.AddScoped<DashboardService>();
         services.AddScoped<ReviewService>();
         services.AddScoped<SalonServiceManager>();

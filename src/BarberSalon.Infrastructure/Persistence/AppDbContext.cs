@@ -4,6 +4,7 @@ using BarberSalon.Domain.Booking.Entities;
 using BarberSalon.Domain.Customers.Entities;
 using BarberSalon.Domain.Loyalty.Entities;
 using BarberSalon.Domain.Portfolio.Entities;
+using BarberSalon.Domain.Reminders.Entities;
 using BarberSalon.Domain.Reviews.Entities;
 using BarberSalon.Domain.SalonServices.Entities;
 using BarberSalon.Domain.Staff.Entities;
@@ -51,6 +52,9 @@ public class AppDbContext : DbContext, IUnitOfWork
 
     /// <summary>Portfolio items table.</summary>
     public DbSet<PortfolioItem> PortfolioItems => Set<PortfolioItem>();
+
+    /// <summary>Reminder rules table.</summary>
+    public DbSet<ReminderRule> ReminderRules => Set<ReminderRule>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
