@@ -2,6 +2,7 @@ using BarberSalon.Application.Common.Exceptions;
 using BarberSalon.Application.Common.Interfaces;
 using BarberSalon.Application.Customers.DTOs;
 using BarberSalon.Application.Customers.Interfaces;
+using BarberSalon.Domain.Common;
 using BarberSalon.Domain.Customers.Entities;
 
 namespace BarberSalon.Application.Customers.Services;
@@ -83,6 +84,86 @@ public sealed class CustomerService
             ?? throw new NotFoundException(nameof(Customer), id);
 
         return MapToDto(customer);
+    }
+
+    /// <summary>
+    /// Updates an existing customer profile.
+    /// </summary>
+    /// <param name="id">The customer unique identifier.</param>
+    /// <param name="request">Update payload.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The updated customer DTO.</returns>
+    /// <exception cref="NotFoundException">Thrown when customer does not exist.</exception>
+    /// <exception cref="ValidationException">Thrown when phone is duplicate or invalid.</exception>
+    public async Task<CustomerDto> UpdateCustomerAsync(
+        Guid id,
+        UpdateCustomerRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request is null)
+        {
+            throw new ValidationException("Request body cannot be null.");
+        }
+
+        var customer = await _customerRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new NotFoundException(nameof(Customer), id);
+
+        var newName = string.IsNullOrWhiteSpace(request.Name) ? customer.FullName : request.Name.Trim();
+        var newPhone = string.IsNullOrWhiteSpace(request.Phone) ? customer.PhoneNumber : request.Phone.Trim();
+
+        if (newPhone != customer.PhoneNumber)
+        {
+            var exists = await _customerRepository.ExistsByPhoneNumberAsync(newPhone, cancellationToken);
+            if (exists)
+            {
+                throw new ValidationException($"A customer with phone number '{newPhone}' already exists.");
+            }
+        }
+
+        var newGender = request.Gender ?? customer.Gender;
+        var newNotes = request.Notes ?? customer.Notes;
+
+        try
+        {
+            customer.Update(newName, newPhone, newGender, newNotes, customer.UserId);
+
+            if (!string.IsNullOrWhiteSpace(request.Status))
+            {
+                if (request.Status.Equals("inactive", StringComparison.OrdinalIgnoreCase) && customer.IsActive)
+                {
+                    customer.Archive();
+                }
+                else if (request.Status.Equals("active", StringComparison.OrdinalIgnoreCase) && !customer.IsActive)
+                {
+                    customer.Activate();
+                }
+            }
+        }
+        catch (DomainException ex)
+        {
+            throw new ValidationException(ex.Message);
+        }
+
+        _customerRepository.Update(customer);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return MapToDto(customer);
+    }
+
+    /// <summary>
+    /// Archives (soft deletes) an existing customer.
+    /// </summary>
+    /// <param name="id">The customer identifier.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <exception cref="NotFoundException">Thrown when customer does not exist.</exception>
+    public async Task ArchiveCustomerAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var customer = await _customerRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new NotFoundException(nameof(Customer), id);
+
+        customer.Archive();
+        _customerRepository.Update(customer);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     /// <summary>

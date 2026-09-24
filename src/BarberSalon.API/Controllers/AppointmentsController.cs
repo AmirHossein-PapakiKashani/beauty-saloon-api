@@ -182,4 +182,35 @@ public sealed class AppointmentsController : ControllerBase
             return NotFound(new ApiResponse<object?>(null, false, ex.Message));
         }
     }
+
+    /// <summary>
+    /// Updates the lifecycle status of an appointment (e.g. confirmed, completed, cancelled, no_show).
+    /// </summary>
+    /// <param name="id">The appointment GUID identifier.</param>
+    /// <param name="request">Status update payload.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The updated appointment wrapped in the standard response envelope.</returns>
+    [HttpPatch("{id:guid}/status")]
+    [ProducesResponseType(typeof(ApiResponse<AppointmentDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateStatus(
+        Guid id,
+        [FromBody] UpdateAppointmentStatusRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var appointment = await _bookingService.UpdateStatusAsync(id, request.Status, request.Reason, cancellationToken);
+            return Ok(ApiResponse<AppointmentDto>.CreateSuccess(appointment, "Appointment status updated successfully."));
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new ApiResponse<object?>(null, false, ex.Message));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ApiResponse<object?>(null, false, ex.Message));
+        }
+    }
 }

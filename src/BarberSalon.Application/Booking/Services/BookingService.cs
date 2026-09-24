@@ -10,6 +10,7 @@ using BarberSalon.Domain.Auth.Entities;
 using BarberSalon.Domain.Booking.Entities;
 using BarberSalon.Domain.Booking.Enums;
 using BarberSalon.Domain.Booking.ValueObjects;
+using BarberSalon.Domain.Common;
 using BarberSalon.Domain.SalonServices.Entities;
 using BarberSalon.Domain.Staff.Entities;
 
@@ -204,6 +205,62 @@ public sealed class BookingService
     {
         var appointment = await _appointmentRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new NotFoundException(nameof(Appointment), id);
+
+        var user = await _userRepository.GetByIdAsync(appointment.CustomerId, cancellationToken);
+        var staff = await _staffRepository.GetByIdAsync(appointment.StaffId, cancellationToken);
+        var service = await _salonServiceRepository.GetByIdAsync(appointment.SalonServiceId, cancellationToken);
+
+        return MapToDto(appointment, user?.FullName, staff?.FullName, service?.Name);
+    }
+
+    /// <summary>
+    /// Updates the lifecycle status of an appointment.
+    /// </summary>
+    /// <param name="id">Appointment identifier.</param>
+    /// <param name="status">Target status (confirmed, completed, cancelled, no_show).</param>
+    /// <param name="reason">Optional cancellation reason.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The updated appointment read model DTO.</returns>
+    /// <exception cref="NotFoundException">Thrown when appointment does not exist.</exception>
+    /// <exception cref="ValidationException">Thrown when status is invalid or transition fails.</exception>
+    public async Task<AppointmentDto> UpdateStatusAsync(
+        Guid id,
+        string status,
+        string? reason = null,
+        CancellationToken cancellationToken = default)
+    {
+        var appointment = await _appointmentRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new NotFoundException(nameof(Appointment), id);
+
+        var normalized = status?.Trim().ToLowerInvariant();
+        try
+        {
+            switch (normalized)
+            {
+                case "confirmed":
+                    appointment.Confirm();
+                    break;
+                case "completed":
+                    appointment.Complete();
+                    break;
+                case "cancelled":
+                    appointment.Cancel(reason);
+                    break;
+                case "no_show":
+                case "noshow":
+                    appointment.MarkNoShow();
+                    break;
+                default:
+                    throw new ValidationException($"Invalid appointment status: '{status}'.");
+            }
+        }
+        catch (DomainException ex)
+        {
+            throw new ValidationException(ex.Message);
+        }
+
+        _appointmentRepository.Update(appointment);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var user = await _userRepository.GetByIdAsync(appointment.CustomerId, cancellationToken);
         var staff = await _staffRepository.GetByIdAsync(appointment.StaffId, cancellationToken);

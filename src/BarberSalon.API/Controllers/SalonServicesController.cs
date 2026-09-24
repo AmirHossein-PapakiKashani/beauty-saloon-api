@@ -1,4 +1,5 @@
 using BarberSalon.API.Common;
+using BarberSalon.Application.Common.Exceptions;
 using BarberSalon.Application.SalonServices.DTOs;
 using BarberSalon.Application.SalonServices.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -48,4 +49,68 @@ public sealed class SalonServicesController : ControllerBase
         var service = await _manager.GetByIdAsync(id, cancellationToken);
         return Ok(ApiResponse<SalonServiceDto>.CreateSuccess(service, "Salon service retrieved successfully."));
     }
+
+    /// <summary>Creates and persists a new salon service.</summary>
+    [HttpPost]
+    [ProducesResponseType(typeof(ApiResponse<SalonServiceDto>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Create(
+        [FromBody] CreateSalonServiceRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var created = await _manager.CreateAsync(request, cancellationToken);
+            return StatusCode(StatusCodes.Status201Created, ApiResponse<SalonServiceDto>.CreateSuccess(created, "Salon service created successfully."));
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new ApiResponse<object?>(null, false, ex.Message));
+        }
+    }
+
+    /// <summary>Updates an existing salon service.</summary>
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<SalonServiceDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Update(
+        Guid id,
+        [FromBody] UpdateSalonServiceRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var updated = await _manager.UpdateAsync(id, request, cancellationToken);
+            return Ok(ApiResponse<SalonServiceDto>.CreateSuccess(updated, "Salon service updated successfully."));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ApiResponse<object?>(null, false, ex.Message));
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new ApiResponse<object?>(null, false, ex.Message));
+        }
+    }
+
+    /// <summary>Archives (soft deletes) a salon service.</summary>
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _manager.ArchiveAsync(id, cancellationToken);
+            return Ok(ApiResponse<object?>.CreateSuccess(null, "Salon service archived successfully."));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ApiResponse<object?>(null, false, ex.Message));
+        }
+    }
 }
+

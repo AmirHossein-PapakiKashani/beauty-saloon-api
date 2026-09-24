@@ -1,4 +1,5 @@
 using BarberSalon.API.Common;
+using BarberSalon.Application.Common.Exceptions;
 using BarberSalon.Application.Staff.DTOs;
 using BarberSalon.Application.Staff.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -56,4 +57,68 @@ public sealed class StaffController : ControllerBase
         var staffMember = await _staffService.GetByIdAsync(id, cancellationToken);
         return Ok(ApiResponse<StaffDto>.CreateSuccess(staffMember, "Staff member retrieved successfully."));
     }
+
+    /// <summary>Creates a new staff member.</summary>
+    [HttpPost]
+    [ProducesResponseType(typeof(ApiResponse<StaffDto>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Create(
+        [FromBody] CreateStaffRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var created = await _staffService.CreateAsync(request, cancellationToken);
+            return StatusCode(StatusCodes.Status201Created, ApiResponse<StaffDto>.CreateSuccess(created, "Staff member created successfully."));
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new ApiResponse<object?>(null, false, ex.Message));
+        }
+    }
+
+    /// <summary>Updates an existing staff member.</summary>
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<StaffDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Update(
+        Guid id,
+        [FromBody] UpdateStaffRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var updated = await _staffService.UpdateAsync(id, request, cancellationToken);
+            return Ok(ApiResponse<StaffDto>.CreateSuccess(updated, "Staff member updated successfully."));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ApiResponse<object?>(null, false, ex.Message));
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new ApiResponse<object?>(null, false, ex.Message));
+        }
+    }
+
+    /// <summary>Archives (soft deletes) a staff member.</summary>
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _staffService.ArchiveAsync(id, cancellationToken);
+            return Ok(ApiResponse<object?>.CreateSuccess(null, "Staff member archived successfully."));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ApiResponse<object?>(null, false, ex.Message));
+        }
+    }
 }
+

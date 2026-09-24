@@ -76,6 +76,37 @@ public sealed class CustomersController : ControllerBase
     }
 
     /// <summary>
+    /// Updates an existing customer profile.
+    /// </summary>
+    /// <param name="id">The customer GUID identifier.</param>
+    /// <param name="request">Customer update payload.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The updated customer wrapped in the standard response envelope.</returns>
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<CustomerDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(
+        Guid id,
+        [FromBody] UpdateCustomerRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var result = await _customerService.UpdateCustomerAsync(id, request, cancellationToken);
+            return Ok(ApiResponse<CustomerDto>.CreateSuccess(result, "Customer updated successfully."));
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new ApiResponse<object?>(null, false, ex.Message));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ApiResponse<object?>(null, false, ex.Message));
+        }
+    }
+
+    /// <summary>
     /// Searches active customers matching a search query across name and phone number.
     /// </summary>
     /// <param name="query">Search term for full name or phone number.</param>
@@ -114,4 +145,27 @@ public sealed class CustomersController : ControllerBase
         var customers = await _customerService.GetCustomersAsync(status, cancellationToken);
         return Ok(ApiResponse<List<CustomerDto>>.CreateSuccess(customers, "Customers retrieved successfully."));
     }
+
+    /// <summary>
+    /// Archives (soft deletes) a customer by unique identifier.
+    /// </summary>
+    /// <param name="id">The customer unique identifier.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A standard response envelope.</returns>
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _customerService.ArchiveCustomerAsync(id, cancellationToken);
+            return Ok(ApiResponse<object?>.CreateSuccess(null, "Customer archived successfully."));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ApiResponse<object?>(null, false, ex.Message));
+        }
+    }
 }
+
