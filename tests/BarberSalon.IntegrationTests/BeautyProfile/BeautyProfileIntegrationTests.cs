@@ -70,5 +70,26 @@ public class BeautyProfileIntegrationTests : IClassFixture<BarberSalonWebFactory
         getEnvelope!.Data.HairType.Should().Be("normal");
     }
 
+    [Fact]
+    public async Task UpdateBeautyProfile_WithExcessiveNoteLength_Returns400()
+    {
+        var customerId = Guid.NewGuid();
+        var request = new UpdateBeautyProfileRequest(
+            "normal",
+            "طبیعی مشکی",
+            "حساسیت به دکلره",
+            "کوتاهی کلاسیک",
+            new string('A', 2001), // exceeds 2000 chars limit
+            "چرب",
+            "آلرژی فصلی"
+        );
+
+        var putResponse = await _client.PutAsJsonAsync($"/api/v1/beauty-profile/{customerId}", request);
+        putResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var content = await putResponse.Content.ReadAsStringAsync();
+        content.Should().Contain("Notes cannot exceed 2000 characters");
+    }
+
     private sealed record ApiResponseEnvelope<T>(T Data, bool Success, string Message);
 }

@@ -1,5 +1,6 @@
 using BarberSalon.Application.BeautyProfile.DTOs;
 using BarberSalon.Application.BeautyProfile.Interfaces;
+using BarberSalon.Application.Common.Exceptions;
 using BarberSalon.Application.Common.Interfaces;
 using BarberSalon.Domain.BeautyProfile.Entities;
 
@@ -35,6 +36,7 @@ public sealed class BeautyProfileService(
         UpdateBeautyProfileRequest request,
         CancellationToken ct = default)
     {
+        ValidateRequest(request);
         var profile = await repository.GetByCustomerIdAsync(customerId, ct);
         if (profile == null)
         {
@@ -79,4 +81,28 @@ public sealed class BeautyProfileService(
             profile.Allergies,
             profile.UpdatedAt
         );
+
+    private static void ValidateRequest(UpdateBeautyProfileRequest request)
+    {
+        if (request.HairType?.Length > 50)
+            throw new ValidationException("HairType cannot exceed 50 characters.");
+
+        if (request.CurrentHairColor?.Length > 100)
+            throw new ValidationException("CurrentHairColor cannot exceed 100 characters.");
+
+        if (request.Sensitivities?.Length > 1000)
+            throw new ValidationException("Sensitivities cannot exceed 1000 characters.");
+
+        if (request.Preferences?.Length > 1000)
+            throw new ValidationException("Preferences cannot exceed 1000 characters.");
+
+        if (request.Notes?.Length > 2000)
+            throw new ValidationException("Notes cannot exceed 2000 characters.");
+
+        if (request.SkinType?.Length > 50)
+            throw new ValidationException("SkinType cannot exceed 50 characters.");
+
+        if (request.Allergies?.Length > 1000)
+            throw new ValidationException("Allergies cannot exceed 1000 characters.");
+    }
 }

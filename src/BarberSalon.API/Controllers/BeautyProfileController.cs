@@ -1,6 +1,7 @@
 using BarberSalon.API.Common;
 using BarberSalon.Application.BeautyProfile.DTOs;
 using BarberSalon.Application.BeautyProfile.Services;
+using BarberSalon.Application.Common.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BarberSalon.API.Controllers;
@@ -19,9 +20,17 @@ public sealed class BeautyProfileController(BeautyProfileService service) : Cont
 
     [HttpPut("{customerId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<BeautyProfileDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Upsert([FromRoute] Guid customerId, [FromBody] UpdateBeautyProfileRequest request, CancellationToken ct)
     {
-        var result = await service.UpsertAsync(customerId, request, ct);
-        return Ok(ApiResponse<BeautyProfileDto>.CreateSuccess(result, "Beauty profile updated successfully."));
+        try
+        {
+            var result = await service.UpsertAsync(customerId, request, ct);
+            return Ok(ApiResponse<BeautyProfileDto>.CreateSuccess(result, "Beauty profile updated successfully."));
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new ApiResponse<object?>(null, false, ex.Message));
+        }
     }
 }

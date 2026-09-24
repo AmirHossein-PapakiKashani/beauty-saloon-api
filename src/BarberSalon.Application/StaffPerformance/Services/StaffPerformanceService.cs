@@ -26,11 +26,13 @@ public sealed class StaffPerformanceService(
         if (fromDate.HasValue)
         {
             allAppointments = allAppointments.Where(a => a.TimeSlot.Date >= fromDate.Value).ToList();
+            allReviews = allReviews.Where(r => DateOnly.FromDateTime(r.CreatedAt) >= fromDate.Value).ToList();
         }
 
         if (toDate.HasValue)
         {
             allAppointments = allAppointments.Where(a => a.TimeSlot.Date <= toDate.Value).ToList();
+            allReviews = allReviews.Where(r => DateOnly.FromDateTime(r.CreatedAt) <= toDate.Value).ToList();
         }
 
         var metrics = new List<MutableMetric>();

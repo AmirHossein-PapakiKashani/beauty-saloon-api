@@ -44,5 +44,25 @@ public class StaffPerformanceIntegrationTests : IClassFixture<BarberSalonWebFact
         envelope!.Success.Should().BeTrue();
     }
 
+    [Fact]
+    public async Task GetStaffPerformance_WithInvalidFromDate_Returns400()
+    {
+        var response = await _client.GetAsync("/api/v1/staff-performance?from=not-a-date&to=2026-09-30");
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var content = await response.Content.ReadAsStringAsync();
+        content.Should().Contain("Invalid 'from' date format");
+    }
+
+    [Fact]
+    public async Task GetStaffPerformance_WithInvertedDateRange_Returns400()
+    {
+        var response = await _client.GetAsync("/api/v1/staff-performance?from=2026-10-01&to=2026-09-01");
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var content = await response.Content.ReadAsStringAsync();
+        content.Should().Contain("'from' date cannot be after 'to' date");
+    }
+
     private sealed record ApiResponseEnvelope<T>(T Data, bool Success, string Message);
 }
