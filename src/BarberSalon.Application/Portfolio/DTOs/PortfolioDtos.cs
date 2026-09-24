@@ -19,3 +19,13 @@ public sealed record CreatePortfolioItemRequest(
     string? Description = null,
     Guid? StaffId = null
 );
+
+public sealed record UpdatePortfolioItemRequest(
+    string Title,
+    string Category,
+    string BeforeImageUrl,
+    string AfterImageUrl,
+    string? Description = null,
+    Guid? StaffId = null
+);
+

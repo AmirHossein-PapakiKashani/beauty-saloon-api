@@ -60,5 +60,43 @@ public class PortfolioIntegrationTests : IClassFixture<BarberSalonWebFactory>
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
+    [Fact]
+    public async Task UpdatePortfolioItem_ReturnsUpdatedItem()
+    {
+        var createRequest = new CreatePortfolioItemRequest(
+            "Original Title",
+            "Beard",
+            "https://images.unsplash.com/before.jpg",
+            "https://images.unsplash.com/after.jpg",
+            "Original description",
+            null
+        );
+
+        var postResponse = await _client.PostAsJsonAsync("/api/v1/portfolio", createRequest);
+        postResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = (await postResponse.Content.ReadFromJsonAsync<ApiResponseEnvelope<PortfolioItemDto>>(JsonOptions))!.Data;
+
+        var updateRequest = new UpdatePortfolioItemRequest(
+            "Updated Title",
+            "Haircut",
+            "https://images.unsplash.com/before-updated.jpg",
+            "https://images.unsplash.com/after-updated.jpg",
+            "Updated description",
+            null
+        );
+
+        var putResponse = await _client.PutAsJsonAsync($"/api/v1/portfolio/{created.Id}", updateRequest);
+        putResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var updatedEnvelope = await putResponse.Content.ReadFromJsonAsync<ApiResponseEnvelope<PortfolioItemDto>>(JsonOptions);
+        updatedEnvelope.Should().NotBeNull();
+        updatedEnvelope!.Success.Should().BeTrue();
+        updatedEnvelope.Data.Title.Should().Be("Updated Title");
+        updatedEnvelope.Data.Category.Should().Be("Haircut");
+        updatedEnvelope.Data.Description.Should().Be("Updated description");
+
+        await _client.DeleteAsync($"/api/v1/portfolio/{created.Id}");
+    }
+
     private sealed record ApiResponseEnvelope<T>(T Data, bool Success, string Message);
 }

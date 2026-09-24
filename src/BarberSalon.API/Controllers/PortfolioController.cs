@@ -37,6 +37,17 @@ public sealed class PortfolioController(PortfolioService portfolioService) : Con
             ApiResponse<PortfolioItemDto>.CreateSuccess(item, "Portfolio item created successfully."));
     }
 
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<PortfolioItemDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdatePortfolioItemRequest req, CancellationToken ct)
+    {
+        var item = await portfolioService.UpdateAsync(id, req, ct);
+        if (item is null)
+            return NotFound(new ApiResponse<object?>(null, false, $"Portfolio item '{id}' not found."));
+
+        return Ok(ApiResponse<PortfolioItemDto>.CreateSuccess(item, "Portfolio item updated successfully."));
+    }
+
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)

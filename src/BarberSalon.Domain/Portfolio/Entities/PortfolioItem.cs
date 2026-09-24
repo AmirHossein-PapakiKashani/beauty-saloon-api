@@ -31,4 +31,21 @@ public sealed class PortfolioItem : BaseEntity
             StaffId = staffId
         };
     }
+
+    public void Update(
+        string title,
+        string category,
+        string beforeImageUrl,
+        string afterImageUrl,
+        string? description = null,
+        Guid? staffId = null)
+    {
+        Title = title.Trim();
+        Category = category.Trim();
+        BeforeImageUrl = beforeImageUrl.Trim();
+        AfterImageUrl = afterImageUrl.Trim();
+        Description = description?.Trim();
+        StaffId = staffId;
+    }
 }
+

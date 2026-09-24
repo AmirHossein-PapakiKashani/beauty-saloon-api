@@ -37,6 +37,16 @@ public sealed class PortfolioService(
         return Map(item);
     }
 
+    public async Task<PortfolioItemDto?> UpdateAsync(Guid id, UpdatePortfolioItemRequest req, CancellationToken ct = default)
+    {
+        var item = await portfolioRepository.GetByIdAsync(id, ct);
+        if (item is null) return null;
+
+        item.Update(req.Title, req.Category, req.BeforeImageUrl, req.AfterImageUrl, req.Description, req.StaffId);
+        await unitOfWork.SaveChangesAsync(ct);
+        return Map(item);
+    }
+
     public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default)
     {
         var item = await portfolioRepository.GetByIdAsync(id, ct);
