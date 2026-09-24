@@ -2,6 +2,7 @@ using BarberSalon.Application.Common.Interfaces;
 using BarberSalon.Domain.Auth.Entities;
 using BarberSalon.Domain.Booking.Entities;
 using BarberSalon.Domain.Customers.Entities;
+using BarberSalon.Domain.Loyalty.Entities;
 using BarberSalon.Domain.Reviews.Entities;
 using BarberSalon.Domain.SalonServices.Entities;
 using BarberSalon.Domain.Staff.Entities;
@@ -40,6 +41,12 @@ public class AppDbContext : DbContext, IUnitOfWork
 
     /// <summary>Waitlist table.</summary>
     public DbSet<WaitlistEntry> WaitlistEntries => Set<WaitlistEntry>();
+
+    /// <summary>Loyalty accounts table.</summary>
+    public DbSet<LoyaltyAccount> LoyaltyAccounts => Set<LoyaltyAccount>();
+
+    /// <summary>Referrals table.</summary>
+    public DbSet<Referral> Referrals => Set<Referral>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
