@@ -8,6 +8,7 @@ using BarberSalon.Application.Reminders.Services;
 using BarberSalon.Application.Reviews.Services;
 using BarberSalon.Application.SalonServices.Services;
 using BarberSalon.Application.Staff.Services;
+using BarberSalon.Application.StaffPerformance.Services;
 using BarberSalon.Application.Waitlist.Services;
 using BarberSalon.Infrastructure;
 using Microsoft.Extensions.Configuration;
@@ -45,6 +46,7 @@ public static class DependencyInjection
         services.AddScoped<ReviewService>();
         services.AddScoped<SalonServiceManager>();
         services.AddScoped<StaffService>();
+        services.AddScoped<StaffPerformanceService>();
         services.AddScoped<UserService>();
         services.AddScoped<WaitlistService>();
         services.AddInfrastructure(configuration);
