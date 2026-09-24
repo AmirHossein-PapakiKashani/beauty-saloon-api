@@ -1,5 +1,6 @@
 using BarberSalon.Application.Admin.Services;
 using BarberSalon.Application.Auth.Services;
+using BarberSalon.Application.BeautyProfile.Services;
 using BarberSalon.Application.Booking.Services;
 using BarberSalon.Application.Customers.Services;
 using BarberSalon.Application.Loyalty.Services;
@@ -47,6 +48,7 @@ public static class DependencyInjection
         services.AddScoped<SalonServiceManager>();
         services.AddScoped<StaffService>();
         services.AddScoped<StaffPerformanceService>();
+        services.AddScoped<BeautyProfileService>();
         services.AddScoped<UserService>();
         services.AddScoped<WaitlistService>();
         services.AddInfrastructure(configuration);
