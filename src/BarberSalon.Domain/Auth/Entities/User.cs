@@ -70,6 +70,12 @@ public sealed class User : BaseEntity
     }
 
     /// <summary>
+    /// Alias for <see cref="UpdateName(string)"/> matching the gap remediation plan contract.
+    /// </summary>
+    /// <param name="name">The new full name.</param>
+    public void SetName(string name) => UpdateName(name);
+
+    /// <summary>
     /// Updates the user's role.
     /// </summary>
     /// <param name="newRole">The new user role.</param>
