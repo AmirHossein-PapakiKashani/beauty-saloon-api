@@ -2,6 +2,7 @@ using BarberSalon.Application.Auth.Interfaces;
 using BarberSalon.Application.Booking.Interfaces;
 using BarberSalon.Application.Common.Interfaces;
 using BarberSalon.Application.Customers.Interfaces;
+using BarberSalon.Application.Reviews.Interfaces;
 using BarberSalon.Application.SalonServices.Interfaces;
 using BarberSalon.Application.Staff.Interfaces;
 using BarberSalon.Infrastructure.Auth;
@@ -40,6 +41,7 @@ public static class DependencyInjection
         services.AddScoped<IOtpCodeRepository, OtpCodeRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
+        services.AddScoped<IReviewRepository, ReviewRepository>();
 
         return services;
     }

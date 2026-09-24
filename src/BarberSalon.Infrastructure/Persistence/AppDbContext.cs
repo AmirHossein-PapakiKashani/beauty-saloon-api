@@ -2,6 +2,7 @@ using BarberSalon.Application.Common.Interfaces;
 using BarberSalon.Domain.Auth.Entities;
 using BarberSalon.Domain.Booking.Entities;
 using BarberSalon.Domain.Customers.Entities;
+using BarberSalon.Domain.Reviews.Entities;
 using BarberSalon.Domain.SalonServices.Entities;
 using BarberSalon.Domain.Staff.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +33,9 @@ public class AppDbContext : DbContext, IUnitOfWork
 
     /// <summary>Staff members table.</summary>
     public DbSet<StaffMember> StaffMembers => Set<StaffMember>();
+
+    /// <summary>Reviews table.</summary>
+    public DbSet<Review> Reviews => Set<Review>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
