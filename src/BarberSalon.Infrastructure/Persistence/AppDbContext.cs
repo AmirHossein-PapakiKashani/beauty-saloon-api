@@ -5,6 +5,7 @@ using BarberSalon.Domain.Customers.Entities;
 using BarberSalon.Domain.Reviews.Entities;
 using BarberSalon.Domain.SalonServices.Entities;
 using BarberSalon.Domain.Staff.Entities;
+using BarberSalon.Domain.Waitlist.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace BarberSalon.Infrastructure.Persistence;
@@ -36,6 +37,9 @@ public class AppDbContext : DbContext, IUnitOfWork
 
     /// <summary>Reviews table.</summary>
     public DbSet<Review> Reviews => Set<Review>();
+
+    /// <summary>Waitlist table.</summary>
+    public DbSet<WaitlistEntry> WaitlistEntries => Set<WaitlistEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

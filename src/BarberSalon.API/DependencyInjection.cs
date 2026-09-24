@@ -5,6 +5,7 @@ using BarberSalon.Application.Customers.Services;
 using BarberSalon.Application.Reviews.Services;
 using BarberSalon.Application.SalonServices.Services;
 using BarberSalon.Application.Staff.Services;
+using BarberSalon.Application.Waitlist.Services;
 using BarberSalon.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<SalonServiceManager>();
         services.AddScoped<StaffService>();
         services.AddScoped<UserService>();
+        services.AddScoped<WaitlistService>();
         services.AddInfrastructure(configuration);
         return services;
     }

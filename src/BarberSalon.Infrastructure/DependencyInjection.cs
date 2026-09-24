@@ -5,6 +5,7 @@ using BarberSalon.Application.Customers.Interfaces;
 using BarberSalon.Application.Reviews.Interfaces;
 using BarberSalon.Application.SalonServices.Interfaces;
 using BarberSalon.Application.Staff.Interfaces;
+using BarberSalon.Application.Waitlist.Interfaces;
 using BarberSalon.Infrastructure.Auth;
 using BarberSalon.Infrastructure.ExternalServices;
 using BarberSalon.Infrastructure.Persistence;
@@ -42,6 +43,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IReviewRepository, ReviewRepository>();
+        services.AddScoped<IWaitlistRepository, WaitlistRepository>();
 
         return services;
     }
