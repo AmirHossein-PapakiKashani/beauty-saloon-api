@@ -94,6 +94,11 @@ public sealed class SalonServiceManager
             request.Price,
             request.Category);
 
+        if (request.IsActive.HasValue)
+        {
+            service.SetActive(request.IsActive.Value);
+        }
+
         _repository.Update(service);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

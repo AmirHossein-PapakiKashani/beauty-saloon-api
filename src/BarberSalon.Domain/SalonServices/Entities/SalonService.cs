@@ -118,6 +118,20 @@ public sealed class SalonService : BaseEntity
         Touch();
     }
 
+    /// <summary>Sets the active status of the service.</summary>
+    /// <param name="isActive">The desired active status.</param>
+    public void SetActive(bool isActive)
+    {
+        if (isActive && !IsActive)
+        {
+            Activate();
+        }
+        else if (!isActive && IsActive)
+        {
+            Archive();
+        }
+    }
+
     // ─── Private Validation ─────────────────────────────────────────────────
 
     private static void Validate(string name, int durationMinutes, decimal price, string category)

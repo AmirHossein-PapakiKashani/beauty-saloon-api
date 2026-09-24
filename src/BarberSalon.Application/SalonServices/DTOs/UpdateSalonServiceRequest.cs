@@ -6,5 +6,6 @@ public record UpdateSalonServiceRequest(
     string Description,
     int DurationMinutes,
     decimal Price,
-    string Category
+    string Category,
+    bool? IsActive = null
 );
