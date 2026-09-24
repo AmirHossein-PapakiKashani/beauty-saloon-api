@@ -22,19 +22,36 @@ public sealed class StaffController : ControllerBase
         _staffService = staffService;
     }
 
-    /// <summary>Returns all active staff members.</summary>
-    /// <remarks>Public endpoint — returns active staff ordered by name.</remarks>
+    /// <summary>Returns all active staff members or searches by slug/service.</summary>
+    /// <remarks>Public endpoint — returns active staff ordered by name, or a single staff member if slug is provided.</remarks>
     /// <param name="status">Optional filter by status (e.g. "active"). Defaults to active staff.</param>
     /// <param name="serviceId">Optional filter by offered salon service identifier.</param>
+    /// <param name="slug">Optional URL-friendly slug filter to lookup a single staff member.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A list of active staff members wrapped in standard response envelope.</returns>
+    /// <returns>A list of active staff members or a single staff member wrapped in standard response envelope.</returns>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<List<StaffDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<StaffDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAll(
         [FromQuery] string? status = null,
         [FromQuery] Guid? serviceId = null,
+        [FromQuery] string? slug = null,
         CancellationToken cancellationToken = default)
     {
+        if (!string.IsNullOrWhiteSpace(slug))
+        {
+            try
+            {
+                var found = await _staffService.GetBySlugAsync(slug.Trim(), cancellationToken);
+                return Ok(ApiResponse<StaffDto>.CreateSuccess(found, "Staff member retrieved successfully."));
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(new ApiResponse<object?>(null, false, ex.Message));
+            }
+        }
+
         if (serviceId.HasValue)
         {
             var staffByService = await _staffService.GetByServiceIdAsync(serviceId.Value, cancellationToken);
