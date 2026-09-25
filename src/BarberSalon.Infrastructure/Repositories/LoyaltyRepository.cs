@@ -7,6 +7,11 @@ namespace BarberSalon.Infrastructure.Repositories;
 
 public sealed class LoyaltyRepository(AppDbContext context) : ILoyaltyRepository
 {
+    public async Task<List<LoyaltyAccount>> GetAllAccountsAsync(CancellationToken ct = default)
+    {
+        return await context.LoyaltyAccounts.OrderByDescending(l => l.PointsBalance).ToListAsync(ct);
+    }
+
     public async Task<LoyaltyAccount?> GetAccountByCustomerIdAsync(Guid customerId, CancellationToken ct = default)
     {
         return await context.LoyaltyAccounts.FirstOrDefaultAsync(l => l.CustomerId == customerId, ct);

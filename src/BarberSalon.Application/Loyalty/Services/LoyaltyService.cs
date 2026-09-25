@@ -11,6 +11,65 @@ public sealed class LoyaltyService(
     ICustomerRepository customerRepository,
     IUnitOfWork unitOfWork)
 {
+    public async Task<List<LoyaltyAccountDto>> GetAllAccountsAsync(CancellationToken ct = default)
+    {
+        var accounts = await loyaltyRepository.GetAllAccountsAsync(ct);
+        var customers = await customerRepository.GetAllAsync(ct);
+        var customerMap = customers.ToDictionary(c => c.Id);
+
+        return accounts.Select(a =>
+        {
+            customerMap.TryGetValue(a.CustomerId, out var customer);
+            return new LoyaltyAccountDto(
+                a.Id,
+                a.CustomerId,
+                a.PointsBalance,
+                a.LifetimePoints,
+                a.Tier,
+                a.ReferralCode,
+                a.UpdatedAt,
+                customer?.FullName,
+                customer?.PhoneNumber
+            );
+        }).ToList();
+    }
+
+    public async Task<LoyaltyAccountDto> RedeemPointsAsync(Guid customerId, int points, CancellationToken ct = default)
+    {
+        var account = await loyaltyRepository.GetAccountByCustomerIdAsync(customerId, ct);
+        if (account is null)
+        {
+            account = LoyaltyAccount.Create(customerId);
+            await loyaltyRepository.AddAccountAsync(account, ct);
+        }
+
+        if (points <= 0)
+        {
+            throw new InvalidOperationException("Points to redeem must be greater than zero.");
+        }
+
+        if (account.PointsBalance < points)
+        {
+            throw new InvalidOperationException("Insufficient points balance.");
+        }
+
+        account.RedeemPoints(points);
+        await unitOfWork.SaveChangesAsync(ct);
+
+        var customer = await customerRepository.GetByIdAsync(customerId, ct);
+        return new LoyaltyAccountDto(
+            account.Id,
+            account.CustomerId,
+            account.PointsBalance,
+            account.LifetimePoints,
+            account.Tier,
+            account.ReferralCode,
+            account.UpdatedAt,
+            customer?.FullName,
+            customer?.PhoneNumber
+        );
+    }
+
     public async Task<LoyaltyAccountDto> GetOrCreateAccountAsync(Guid customerId, CancellationToken ct = default)
     {
         var account = await loyaltyRepository.GetAccountByCustomerIdAsync(customerId, ct);
@@ -21,7 +80,18 @@ public sealed class LoyaltyService(
             await unitOfWork.SaveChangesAsync(ct);
         }
 
-        return MapAccount(account);
+        var customer = await customerRepository.GetByIdAsync(customerId, ct);
+        return new LoyaltyAccountDto(
+            account.Id,
+            account.CustomerId,
+            account.PointsBalance,
+            account.LifetimePoints,
+            account.Tier,
+            account.ReferralCode,
+            account.UpdatedAt,
+            customer?.FullName,
+            customer?.PhoneNumber
+        );
     }
 
     public async Task<List<ReferralDto>> GetReferralsAsync(Guid? customerId = null, CancellationToken ct = default)

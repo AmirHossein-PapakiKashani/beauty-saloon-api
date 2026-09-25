@@ -9,6 +9,23 @@ namespace BarberSalon.API.Controllers;
 [Route("api/v1/loyalty")]
 public sealed class LoyaltyController(LoyaltyService loyaltyService) : ControllerBase
 {
+    [HttpGet("accounts")]
+    [ProducesResponseType(typeof(ApiResponse<List<LoyaltyAccountDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllAccounts(CancellationToken ct)
+    {
+        var accounts = await loyaltyService.GetAllAccountsAsync(ct);
+        return Ok(ApiResponse<List<LoyaltyAccountDto>>.CreateSuccess(accounts, "Loyalty accounts retrieved successfully."));
+    }
+
+    [HttpPost("{customerId:guid}/redeem")]
+    [HttpPost("accounts/{customerId:guid}/redeem")]
+    [ProducesResponseType(typeof(ApiResponse<LoyaltyAccountDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> RedeemPoints(Guid customerId, [FromBody] RedeemPointsRequest req, CancellationToken ct)
+    {
+        var account = await loyaltyService.RedeemPointsAsync(customerId, req.Points, ct);
+        return Ok(ApiResponse<LoyaltyAccountDto>.CreateSuccess(account, "Points redeemed successfully."));
+    }
+
     [HttpGet("{customerId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<LoyaltyAccountDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAccount(Guid customerId, CancellationToken ct)

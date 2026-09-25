@@ -7,8 +7,16 @@ public sealed record LoyaltyAccountDto(
     int LifetimePoints,
     string Tier,
     string ReferralCode,
-    DateTime UpdatedAt
+    DateTime UpdatedAt,
+    string? CustomerName = null,
+    string? CustomerPhone = null
 );
+
+public sealed record RedeemPointsRequest(
+    int Points,
+    string? RewardId = null
+);
+
 
 public sealed record ReferralDto(
     Guid Id,

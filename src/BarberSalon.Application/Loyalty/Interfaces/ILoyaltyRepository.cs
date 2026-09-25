@@ -4,6 +4,7 @@ namespace BarberSalon.Application.Loyalty.Interfaces;
 
 public interface ILoyaltyRepository
 {
+    Task<List<LoyaltyAccount>> GetAllAccountsAsync(CancellationToken ct = default);
     Task<LoyaltyAccount?> GetAccountByCustomerIdAsync(Guid customerId, CancellationToken ct = default);
     Task<LoyaltyAccount?> GetAccountByReferralCodeAsync(string referralCode, CancellationToken ct = default);
     Task AddAccountAsync(LoyaltyAccount account, CancellationToken ct = default);
