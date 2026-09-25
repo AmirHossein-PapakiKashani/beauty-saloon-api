@@ -105,4 +105,56 @@ public sealed class BeautyProfileService(
         if (request.Allergies?.Length > 1000)
             throw new ValidationException("Allergies cannot exceed 1000 characters.");
     }
+
+    public async Task<List<BeautyHistoryEntryDto>> GetHistoryAsync(Guid customerId, CancellationToken ct = default)
+    {
+        var entries = await repository.GetHistoryByCustomerIdAsync(customerId, ct);
+        return entries.Select(MapHistoryToDto).ToList();
+    }
+
+    public async Task<BeautyHistoryEntryDto> AddHistoryEntryAsync(
+        Guid customerId,
+        CreateBeautyHistoryEntryRequest request,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.ServiceName))
+            throw new ValidationException("ServiceName is required.");
+
+        var entry = BeautyHistoryEntry.Create(
+            customerId,
+            request.ServiceName,
+            request.StaffName,
+            request.Date,
+            request.Formula,
+            request.Notes,
+            request.PhotoUrl
+        );
+
+        await repository.AddHistoryAsync(entry, ct);
+        await unitOfWork.SaveChangesAsync(ct);
+        return MapHistoryToDto(entry);
+    }
+
+    public async Task<bool> DeleteHistoryEntryAsync(Guid id, CancellationToken ct = default)
+    {
+        var entry = await repository.GetHistoryByIdAsync(id, ct);
+        if (entry == null) return false;
+
+        await repository.DeleteHistoryAsync(entry, ct);
+        await unitOfWork.SaveChangesAsync(ct);
+        return true;
+    }
+
+    private static BeautyHistoryEntryDto MapHistoryToDto(BeautyHistoryEntry entry) =>
+        new(
+            entry.Id,
+            entry.CustomerId,
+            entry.ServiceName,
+            entry.StaffName,
+            entry.Date,
+            entry.Formula,
+            entry.Notes,
+            entry.PhotoUrl,
+            entry.CreatedAt
+        );
 }

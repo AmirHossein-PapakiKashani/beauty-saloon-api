@@ -60,6 +60,9 @@ public class AppDbContext : DbContext, IUnitOfWork
     /// <summary>Beauty profiles table.</summary>
     public DbSet<CustomerBeautyProfile> BeautyProfiles => Set<CustomerBeautyProfile>();
 
+    /// <summary>Beauty history entries table.</summary>
+    public DbSet<BeautyHistoryEntry> BeautyHistoryEntries => Set<BeautyHistoryEntry>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

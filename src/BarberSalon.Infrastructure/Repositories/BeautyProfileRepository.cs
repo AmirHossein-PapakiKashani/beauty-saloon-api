@@ -16,4 +16,28 @@ public sealed class BeautyProfileRepository(AppDbContext context) : IBeautyProfi
     {
         await context.BeautyProfiles.AddAsync(profile, ct);
     }
+
+    public async Task<List<BeautyHistoryEntry>> GetHistoryByCustomerIdAsync(Guid customerId, CancellationToken ct = default)
+    {
+        return await context.BeautyHistoryEntries
+            .Where(b => b.CustomerId == customerId)
+            .OrderByDescending(b => b.CreatedAt)
+            .ToListAsync(ct);
+    }
+
+    public async Task AddHistoryAsync(BeautyHistoryEntry entry, CancellationToken ct = default)
+    {
+        await context.BeautyHistoryEntries.AddAsync(entry, ct);
+    }
+
+    public async Task<BeautyHistoryEntry?> GetHistoryByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        return await context.BeautyHistoryEntries.FirstOrDefaultAsync(b => b.Id == id, ct);
+    }
+
+    public Task DeleteHistoryAsync(BeautyHistoryEntry entry, CancellationToken ct = default)
+    {
+        context.BeautyHistoryEntries.Remove(entry);
+        return Task.CompletedTask;
+    }
 }
