@@ -58,4 +58,38 @@ public sealed class PortfolioController(PortfolioService portfolioService) : Con
 
         return Ok(ApiResponse<object?>.CreateSuccess(new { id }, "Portfolio item deleted successfully."));
     }
+
+    [HttpPost("{id:guid}/like")]
+    [ProducesResponseType(typeof(ApiResponse<PortfolioItemDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Like(Guid id, CancellationToken ct)
+    {
+        var item = await portfolioService.LikeAsync(id, ct);
+        if (item is null)
+            return NotFound(new ApiResponse<object?>(null, false, $"Portfolio item '{id}' not found."));
+
+        return Ok(ApiResponse<PortfolioItemDto>.CreateSuccess(item, "Portfolio item liked successfully."));
+    }
+
+    [HttpPatch("{id:guid}/toggle-featured")]
+    [ProducesResponseType(typeof(ApiResponse<PortfolioItemDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ToggleFeatured(Guid id, CancellationToken ct)
+    {
+        var item = await portfolioService.ToggleFeaturedAsync(id, ct);
+        if (item is null)
+            return NotFound(new ApiResponse<object?>(null, false, $"Portfolio item '{id}' not found."));
+
+        return Ok(ApiResponse<PortfolioItemDto>.CreateSuccess(item, "Portfolio item featured status toggled."));
+    }
+
+    [HttpPatch("{id:guid}/toggle-publish")]
+    [HttpPatch("{id:guid}/toggle-published")]
+    [ProducesResponseType(typeof(ApiResponse<PortfolioItemDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> TogglePublished(Guid id, CancellationToken ct)
+    {
+        var item = await portfolioService.TogglePublishedAsync(id, ct);
+        if (item is null)
+            return NotFound(new ApiResponse<object?>(null, false, $"Portfolio item '{id}' not found."));
+
+        return Ok(ApiResponse<PortfolioItemDto>.CreateSuccess(item, "Portfolio item publish status toggled."));
+    }
 }

@@ -8,7 +8,10 @@ public sealed record PortfolioItemDto(
     string AfterImageUrl,
     string? Description,
     Guid? StaffId,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    int LikesCount = 0,
+    bool IsFeatured = false,
+    bool IsPublished = true
 );
 
 public sealed record CreatePortfolioItemRequest(

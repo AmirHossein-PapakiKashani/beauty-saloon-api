@@ -12,6 +12,27 @@ public sealed class PortfolioItem : BaseEntity
     public string AfterImageUrl { get; private set; } = string.Empty;
     public string? Description { get; private set; }
     public Guid? StaffId { get; private set; }
+    public int LikesCount { get; private set; }
+    public bool IsFeatured { get; private set; }
+    public bool IsPublished { get; private set; } = true;
+
+    public void IncrementLikes()
+    {
+        LikesCount++;
+        Touch();
+    }
+
+    public void ToggleFeatured()
+    {
+        IsFeatured = !IsFeatured;
+        Touch();
+    }
+
+    public void TogglePublished()
+    {
+        IsPublished = !IsPublished;
+        Touch();
+    }
 
     public static PortfolioItem Create(
         string title,

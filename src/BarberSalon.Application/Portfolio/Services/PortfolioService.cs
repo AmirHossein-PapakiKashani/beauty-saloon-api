@@ -57,6 +57,36 @@ public sealed class PortfolioService(
         return true;
     }
 
+    public async Task<PortfolioItemDto?> LikeAsync(Guid id, CancellationToken ct = default)
+    {
+        var item = await portfolioRepository.GetByIdAsync(id, ct);
+        if (item is null) return null;
+
+        item.IncrementLikes();
+        await unitOfWork.SaveChangesAsync(ct);
+        return Map(item);
+    }
+
+    public async Task<PortfolioItemDto?> ToggleFeaturedAsync(Guid id, CancellationToken ct = default)
+    {
+        var item = await portfolioRepository.GetByIdAsync(id, ct);
+        if (item is null) return null;
+
+        item.ToggleFeatured();
+        await unitOfWork.SaveChangesAsync(ct);
+        return Map(item);
+    }
+
+    public async Task<PortfolioItemDto?> TogglePublishedAsync(Guid id, CancellationToken ct = default)
+    {
+        var item = await portfolioRepository.GetByIdAsync(id, ct);
+        if (item is null) return null;
+
+        item.TogglePublished();
+        await unitOfWork.SaveChangesAsync(ct);
+        return Map(item);
+    }
+
     private static PortfolioItemDto Map(PortfolioItem p) =>
-        new(p.Id, p.Title, p.Category, p.BeforeImageUrl, p.AfterImageUrl, p.Description, p.StaffId, p.CreatedAt);
+        new(p.Id, p.Title, p.Category, p.BeforeImageUrl, p.AfterImageUrl, p.Description, p.StaffId, p.CreatedAt, p.LikesCount, p.IsFeatured, p.IsPublished);
 }
