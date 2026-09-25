@@ -9,6 +9,30 @@ namespace BarberSalon.API.Controllers;
 [Route("api/v1/reminders")]
 public sealed class RemindersController(ReminderService reminderService) : ControllerBase
 {
+    [HttpGet("due")]
+    [ProducesResponseType(typeof(ApiResponse<List<DueReminderDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetDueReminders(CancellationToken ct)
+    {
+        var due = await reminderService.GetDueRemindersAsync(ct);
+        return Ok(ApiResponse<List<DueReminderDto>>.CreateSuccess(due, "Due reminders retrieved successfully."));
+    }
+
+    [HttpPost("{id}/send")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SendReminder(string id, CancellationToken ct)
+    {
+        await reminderService.SendReminderAsync(id, ct);
+        return Ok(ApiResponse<object>.CreateSuccess(new { id, status = "sent" }, "Reminder sent successfully."));
+    }
+
+    [HttpPost("{id}/dismiss")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> DismissReminder(string id, CancellationToken ct)
+    {
+        await reminderService.DismissReminderAsync(id, ct);
+        return Ok(ApiResponse<object>.CreateSuccess(new { id, status = "dismissed" }, "Reminder dismissed successfully."));
+    }
+
     [HttpGet("rules")]
     [ProducesResponseType(typeof(ApiResponse<List<ReminderRuleDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetRules(CancellationToken ct)
