@@ -39,4 +39,15 @@ public sealed class DashboardController : ControllerBase
         var stats = await _dashboardService.GetDashboardStatsAsync(cancellationToken);
         return Ok(ApiResponse<DashboardStatsDto>.CreateSuccess(stats, "Dashboard statistics retrieved successfully."));
     }
+
+    /// <summary>
+    /// Returns recent salon activity feed for the administrator dashboard.
+    /// </summary>
+    [HttpGet("activities")]
+    [ProducesResponseType(typeof(ApiResponse<List<ActivityLogDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetActivities([FromQuery] int count = 10, CancellationToken cancellationToken = default)
+    {
+        var activities = await _dashboardService.GetActivitiesAsync(count, cancellationToken);
+        return Ok(ApiResponse<List<ActivityLogDto>>.CreateSuccess(activities, "Recent activities retrieved successfully."));
+    }
 }
