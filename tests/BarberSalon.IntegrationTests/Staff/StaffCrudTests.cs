@@ -101,4 +101,37 @@ public sealed class StaffCrudTests : IClassFixture<BarberSalonWebFactory>
 
         deleteRes.StatusCode.Should().Be(HttpStatusCode.OK);
     }
+
+    [Fact]
+    public async Task Post_Activate_WithArchivedId_ReactivatesStaff()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..6];
+        var createRequest = new CreateStaffRequest(
+            $"Staff {suffix}",
+            $"staff-{suffix}",
+            $"0912{Random.Shared.Next(1000000, 9999999)}",
+            "Bio",
+            "Barber",
+            2,
+            new List<string>(),
+            new List<Guid>(),
+            null,
+            null);
+        var createRes = await _client.PostAsJsonAsync("/api/v1/staff", createRequest);
+        var created = (await createRes.Content.ReadFromJsonAsync<ApiResponse<StaffDto>>())!.Data;
+
+        // Archive first
+        var deleteRes = await _client.DeleteAsync($"/api/v1/staff/{created.Id}");
+        deleteRes.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Reactivate
+        var activateRes = await _client.PostAsync($"/api/v1/staff/{created.Id}/activate", null);
+        activateRes.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Verify it is active again
+        var getRes = await _client.GetAsync($"/api/v1/staff/{created.Id}");
+        var fetched = (await getRes.Content.ReadFromJsonAsync<ApiResponse<StaffDto>>())!.Data;
+        fetched.IsActive.Should().BeTrue();
+    }
 }
+

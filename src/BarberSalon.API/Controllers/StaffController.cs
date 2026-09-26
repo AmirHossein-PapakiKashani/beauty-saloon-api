@@ -58,6 +58,12 @@ public sealed class StaffController : ControllerBase
             return Ok(ApiResponse<List<StaffDto>>.CreateSuccess(staffByService, "Staff members for service retrieved successfully."));
         }
 
+        if (string.Equals(status, "all", StringComparison.OrdinalIgnoreCase))
+        {
+            var allStaff = await _staffService.GetAllAsync(cancellationToken);
+            return Ok(ApiResponse<List<StaffDto>>.CreateSuccess(allStaff, "All staff members retrieved successfully."));
+        }
+
         var staff = await _staffService.GetAllActiveAsync(cancellationToken);
         return Ok(ApiResponse<List<StaffDto>>.CreateSuccess(staff, "Active staff members retrieved successfully."));
     }
@@ -131,6 +137,25 @@ public sealed class StaffController : ControllerBase
         {
             await _staffService.ArchiveAsync(id, cancellationToken);
             return Ok(ApiResponse<object?>.CreateSuccess(null, "Staff member archived successfully."));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ApiResponse<object?>(null, false, ex.Message));
+        }
+    }
+
+    /// <summary>Reactivates an archived staff member.</summary>
+    [HttpPost("{id:guid}/activate")]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Activate(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _staffService.ActivateAsync(id, cancellationToken);
+            return Ok(ApiResponse<object?>.CreateSuccess(null, "Staff member activated successfully."));
         }
         catch (NotFoundException ex)
         {

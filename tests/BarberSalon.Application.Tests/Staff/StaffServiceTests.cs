@@ -236,4 +236,36 @@ public class StaffServiceTests
         // Assert
         await act.Should().ThrowAsync<NotFoundException>();
     }
+
+    [Fact]
+    public async Task ActivateAsync_WhenExists_ActivatesAndSaves()
+    {
+        // Arrange
+        var staff = StaffMember.Create("Ali Karimi", "karimi", "09121234567", "Bio", "Barber", 5);
+        staff.Archive(); // Make it inactive first
+        _repository.GetByIdAsync(staff.Id, Arg.Any<CancellationToken>()).Returns(staff);
+
+        // Act
+        await _service.ActivateAsync(staff.Id, CancellationToken.None);
+
+        // Assert
+        staff.IsActive.Should().BeTrue();
+        _repository.Received(1).Update(staff);
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ActivateAsync_WhenNotFound_ThrowsNotFoundException()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        _repository.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns((StaffMember?)null);
+
+        // Act
+        var act = () => _service.ActivateAsync(id, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+    }
 }
+
