@@ -213,4 +213,36 @@ public sealed class AppointmentsController : ControllerBase
             return NotFound(new ApiResponse<object?>(null, false, ex.Message));
         }
     }
+
+    /// <summary>
+    /// Updates details of an existing appointment (reschedule, change staff, service, or notes).
+    /// </summary>
+    /// <param name="id">The appointment GUID identifier.</param>
+    /// <param name="request">Update appointment payload.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The updated appointment wrapped in the standard response envelope.</returns>
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<AppointmentDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(
+        Guid id,
+        [FromBody] UpdateAppointmentRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var appointment = await _bookingService.UpdateAppointmentAsync(id, request, cancellationToken);
+            return Ok(ApiResponse<AppointmentDto>.CreateSuccess(appointment, "Appointment updated successfully."));
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new ApiResponse<object?>(null, false, ex.Message));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ApiResponse<object?>(null, false, ex.Message));
+        }
+    }
 }
+

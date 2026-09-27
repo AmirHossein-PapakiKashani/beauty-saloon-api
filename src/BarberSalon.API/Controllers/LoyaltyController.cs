@@ -65,4 +65,20 @@ public sealed class LoyaltyController(LoyaltyService loyaltyService) : Controlle
         var result = await loyaltyService.ApplyReferralAsync(req, ct);
         return Ok(ApiResponse<ReferralDto>.CreateSuccess(result, "Referral applied successfully."));
     }
+
+    [HttpGet("accounts/{customerId:guid}/transactions")]
+    [ProducesResponseType(typeof(ApiResponse<List<LoyaltyTransactionDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetTransactions(Guid customerId, CancellationToken ct)
+    {
+        var transactions = await loyaltyService.GetTransactionsByCustomerIdAsync(customerId, ct);
+        return Ok(ApiResponse<List<LoyaltyTransactionDto>>.CreateSuccess(transactions, "Loyalty transactions retrieved successfully."));
+    }
+
+    [HttpPost("accounts/{customerId:guid}/adjust-points")]
+    [ProducesResponseType(typeof(ApiResponse<LoyaltyAccountDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> AdjustPoints(Guid customerId, [FromBody] AdjustPointsRequest req, CancellationToken ct)
+    {
+        var account = await loyaltyService.AdjustPointsAsync(customerId, req.Points, req.Reason, ct);
+        return Ok(ApiResponse<LoyaltyAccountDto>.CreateSuccess(account, "Loyalty points adjusted successfully."));
+    }
 }

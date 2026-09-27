@@ -11,4 +11,6 @@ public interface ILoyaltyRepository
     Task<List<Referral>> GetReferralsAsync(Guid? customerId = null, CancellationToken ct = default);
     Task<Referral?> GetReferralByCodeAsync(string referralCode, CancellationToken ct = default);
     Task AddReferralAsync(Referral referral, CancellationToken ct = default);
+    Task<List<LoyaltyTransaction>> GetTransactionsByCustomerIdAsync(Guid customerId, CancellationToken ct = default);
+    Task AddTransactionAsync(LoyaltyTransaction transaction, CancellationToken ct = default);
 }

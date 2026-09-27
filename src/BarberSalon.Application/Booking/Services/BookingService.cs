@@ -270,6 +270,79 @@ public sealed class BookingService
     }
 
     /// <summary>
+    /// Updates details of an existing appointment (reschedule time, change staff, change service, update price/notes).
+    /// </summary>
+    public async Task<AppointmentDto> UpdateAppointmentAsync(
+        Guid id,
+        UpdateAppointmentRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var appointment = await _appointmentRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new NotFoundException(nameof(Appointment), id);
+
+        if (!DateOnly.TryParseExact(request.Date.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+        {
+            throw new ValidationException($"Invalid date format '{request.Date}'. Expected yyyy-MM-dd format.");
+        }
+
+        if (!TimeOnly.TryParseExact(request.StartTime.Trim(), "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var startTime))
+        {
+            throw new ValidationException($"Invalid time format '{request.StartTime}'. Expected HH:mm format.");
+        }
+
+        if (startTime < OperatingStart || startTime > OperatingEnd)
+        {
+            throw new ValidationException($"Appointment time must be between {OperatingStart:HH:mm} and {OperatingEnd:HH:mm}.");
+        }
+
+        var staff = await _staffRepository.GetByIdAsync(request.StaffId, cancellationToken);
+        if (staff == null || !staff.IsActive)
+        {
+            throw new NotFoundException(nameof(StaffMember), request.StaffId);
+        }
+
+        var service = await _salonServiceRepository.GetByIdAsync(request.SalonServiceId, cancellationToken);
+        if (service == null || !service.IsActive)
+        {
+            throw new NotFoundException(nameof(SalonService), request.SalonServiceId);
+        }
+
+        var duration = service.DurationMinutes > 0 ? service.DurationMinutes : 30;
+        var endTime = startTime.AddMinutes(duration);
+        var timeSlot = TimeSlot.Create(date, startTime, endTime);
+
+        var existingStaffAppointments = await _appointmentRepository.GetByStaffAndDateAsync(staff.Id, date, cancellationToken);
+        var hasConflict = existingStaffAppointments.Any(a =>
+            a.Id != appointment.Id &&
+            a.Status != AppointmentStatus.Cancelled &&
+            a.Status != AppointmentStatus.NoShow &&
+            a.TimeSlot.OverlapsWith(timeSlot));
+
+        if (hasConflict)
+        {
+            throw new ValidationException("The selected time slot is already booked for this staff member.");
+        }
+
+        var price = request.Price ?? (service.Price > 0 ? service.Price : appointment.Price);
+
+        try
+        {
+            appointment.UpdateDetails(staff.Id, service.Id, timeSlot, price, request.Notes);
+        }
+        catch (DomainException ex)
+        {
+            throw new ValidationException(ex.Message);
+        }
+
+        _appointmentRepository.Update(appointment);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        var user = await _userRepository.GetByIdAsync(appointment.CustomerId, cancellationToken);
+
+        return MapToDto(appointment, user?.FullName, staff?.FullName, service?.Name);
+    }
+
+    /// <summary>
     /// Returns all appointments for a given customer identifier, ordered by date descending.
     /// </summary>
     /// <param name="customerId">The customer GUID identifier.</param>

@@ -48,4 +48,17 @@ public sealed class LoyaltyRepository(AppDbContext context) : ILoyaltyRepository
     {
         await context.Referrals.AddAsync(referral, ct);
     }
+
+    public async Task<List<LoyaltyTransaction>> GetTransactionsByCustomerIdAsync(Guid customerId, CancellationToken ct = default)
+    {
+        return await context.LoyaltyTransactions
+            .Where(t => t.CustomerId == customerId)
+            .OrderByDescending(t => t.CreatedAt)
+            .ToListAsync(ct);
+    }
+
+    public async Task AddTransactionAsync(LoyaltyTransaction transaction, CancellationToken ct = default)
+    {
+        await context.LoyaltyTransactions.AddAsync(transaction, ct);
+    }
 }

@@ -56,4 +56,23 @@ public sealed class WaitlistController(WaitlistService waitlistService) : Contro
 
         return Ok(ApiResponse<object?>.CreateSuccess(new { id }, "Waitlist entry cancelled successfully."));
     }
+
+    [HttpPost("{id:guid}/claim")]
+    [ProducesResponseType(typeof(ApiResponse<WaitlistEntryDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Claim(Guid id, CancellationToken ct)
+    {
+        var claimed = await waitlistService.ClaimAsync(id, ct);
+        if (claimed is null)
+            return NotFound(new ApiResponse<object?>(null, false, $"Waitlist entry with ID '{id}' not found."));
+
+        return Ok(ApiResponse<WaitlistEntryDto>.CreateSuccess(claimed, "Waitlist entry claimed successfully."));
+    }
+
+    [HttpGet("customer/{customerId:guid}/notifications")]
+    [ProducesResponseType(typeof(ApiResponse<List<WaitlistEntryDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCustomerNotifications(Guid customerId, CancellationToken ct)
+    {
+        var list = await waitlistService.GetCustomerNotificationsAsync(customerId, ct);
+        return Ok(ApiResponse<List<WaitlistEntryDto>>.CreateSuccess(list, "Customer waitlist notifications retrieved successfully."));
+    }
 }

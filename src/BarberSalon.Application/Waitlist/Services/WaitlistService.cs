@@ -106,6 +106,27 @@ public sealed class WaitlistService(
         return true;
     }
 
+    public async Task<WaitlistEntryDto?> ClaimAsync(Guid id, CancellationToken ct = default)
+    {
+        var entry = await waitlistRepository.GetByIdAsync(id, ct);
+        if (entry is null) return null;
+
+        entry.Claim();
+        await unitOfWork.SaveChangesAsync(ct);
+
+        return Map(entry);
+    }
+
+    public async Task<List<WaitlistEntryDto>> GetCustomerNotificationsAsync(Guid customerId, CancellationToken ct = default)
+    {
+        var all = await waitlistRepository.GetAllAsync(null, null, null, ct);
+        return all
+            .Where(e => e.CustomerId == customerId)
+            .OrderByDescending(e => e.CreatedAt)
+            .Select(Map)
+            .ToList();
+    }
+
     private static WaitlistEntryDto Map(WaitlistEntry w) => new(
         w.Id,
         w.CustomerId,

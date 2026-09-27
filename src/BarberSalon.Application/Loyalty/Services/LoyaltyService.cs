@@ -54,6 +54,8 @@ public sealed class LoyaltyService(
         }
 
         account.RedeemPoints(points);
+        var transaction = LoyaltyTransaction.Create(customerId, -points, "redeemed", "کسر امتیاز جهت دریافت پاداش");
+        await loyaltyRepository.AddTransactionAsync(transaction, ct);
         await unitOfWork.SaveChangesAsync(ct);
 
         var customer = await customerRepository.GetByIdAsync(customerId, ct);
@@ -185,6 +187,55 @@ public sealed class LoyaltyService(
         await unitOfWork.SaveChangesAsync(ct);
 
         return MapReferral(referral);
+    }
+
+    public async Task<List<LoyaltyTransactionDto>> GetTransactionsByCustomerIdAsync(Guid customerId, CancellationToken ct = default)
+    {
+        var txs = await loyaltyRepository.GetTransactionsByCustomerIdAsync(customerId, ct);
+        return txs.Select(t => new LoyaltyTransactionDto(
+            t.Id,
+            t.CustomerId,
+            t.Points,
+            t.Type,
+            t.Description,
+            t.CreatedAt
+        )).ToList();
+    }
+
+    public async Task<LoyaltyAccountDto> AdjustPointsAsync(Guid customerId, int points, string reason, CancellationToken ct = default)
+    {
+        var account = await loyaltyRepository.GetAccountByCustomerIdAsync(customerId, ct);
+        if (account is null)
+        {
+            account = LoyaltyAccount.Create(customerId);
+            await loyaltyRepository.AddAccountAsync(account, ct);
+        }
+
+        if (points >= 0)
+        {
+            account.AddPoints(points);
+        }
+        else
+        {
+            account.RedeemPoints(-points);
+        }
+
+        var tx = LoyaltyTransaction.Create(customerId, points, "adjusted", string.IsNullOrWhiteSpace(reason) ? "تنظیم دستی امتیاز توسط مدیر" : reason);
+        await loyaltyRepository.AddTransactionAsync(tx, ct);
+        await unitOfWork.SaveChangesAsync(ct);
+
+        var customer = await customerRepository.GetByIdAsync(customerId, ct);
+        return new LoyaltyAccountDto(
+            account.Id,
+            account.CustomerId,
+            account.PointsBalance,
+            account.LifetimePoints,
+            account.Tier,
+            account.ReferralCode,
+            account.UpdatedAt,
+            customer?.FullName,
+            customer?.PhoneNumber
+        );
     }
 
     private static LoyaltyAccountDto MapAccount(LoyaltyAccount a) =>

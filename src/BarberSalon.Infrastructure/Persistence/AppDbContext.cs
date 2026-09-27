@@ -48,6 +48,9 @@ public class AppDbContext : DbContext, IUnitOfWork
     /// <summary>Loyalty accounts table.</summary>
     public DbSet<LoyaltyAccount> LoyaltyAccounts => Set<LoyaltyAccount>();
 
+    /// <summary>Loyalty transactions table.</summary>
+    public DbSet<LoyaltyTransaction> LoyaltyTransactions => Set<LoyaltyTransaction>();
+
     /// <summary>Referrals table.</summary>
     public DbSet<Referral> Referrals => Set<Referral>();
 

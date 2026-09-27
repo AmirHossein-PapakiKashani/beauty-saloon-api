@@ -145,6 +145,39 @@ public sealed class Appointment : BaseEntity
     }
 
     /// <summary>
+    /// Updates the appointment details (rescheduling slot, changing staff, service, price, notes).
+    /// </summary>
+    public void UpdateDetails(
+        Guid staffId,
+        Guid salonServiceId,
+        TimeSlot timeSlot,
+        decimal price,
+        string? notes = null)
+    {
+        if (Status == AppointmentStatus.Completed)
+        {
+            throw new DomainException("Cannot update a completed appointment.");
+        }
+
+        if (Status == AppointmentStatus.Cancelled)
+        {
+            throw new DomainException("Cannot update a cancelled appointment.");
+        }
+
+        Validate(CustomerId, staffId, salonServiceId, timeSlot, price);
+
+        StaffId = staffId;
+        SalonServiceId = salonServiceId;
+        TimeSlot = timeSlot;
+        Price = price;
+        if (notes != null)
+        {
+            Notes = notes.Trim();
+        }
+        Touch();
+    }
+
+    /// <summary>
     /// Checks if this appointment blocks a given slot time on a specific date.
     /// Active appointments (Pending, Confirmed, Completed) block time slots.
     /// Cancelled and NoShow appointments do not block time slots.
