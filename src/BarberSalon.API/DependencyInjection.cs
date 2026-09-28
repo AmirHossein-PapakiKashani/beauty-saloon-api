@@ -29,7 +29,7 @@ public static class DependencyInjection
         {
             options.AddPolicy(CorsPolicyName, policy =>
             {
-                policy.WithOrigins("http://localhost:3000", "http://localhost:3150")
+                policy.WithOrigins("http://localhost:3000", "http://localhost:3150", "http://127.0.0.1:3150")
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials();

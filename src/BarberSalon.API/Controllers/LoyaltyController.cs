@@ -20,10 +20,18 @@ public sealed class LoyaltyController(LoyaltyService loyaltyService) : Controlle
     [HttpPost("{customerId:guid}/redeem")]
     [HttpPost("accounts/{customerId:guid}/redeem")]
     [ProducesResponseType(typeof(ApiResponse<LoyaltyAccountDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RedeemPoints(Guid customerId, [FromBody] RedeemPointsRequest req, CancellationToken ct)
     {
-        var account = await loyaltyService.RedeemPointsAsync(customerId, req.Points, ct);
-        return Ok(ApiResponse<LoyaltyAccountDto>.CreateSuccess(account, "Points redeemed successfully."));
+        try
+        {
+            var account = await loyaltyService.RedeemPointsAsync(customerId, req.Points, ct);
+            return Ok(ApiResponse<LoyaltyAccountDto>.CreateSuccess(account, "Points redeemed successfully."));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ApiResponse<object?>(null, false, ex.Message));
+        }
     }
 
     [HttpGet("{customerId:guid}")]
@@ -76,9 +84,17 @@ public sealed class LoyaltyController(LoyaltyService loyaltyService) : Controlle
 
     [HttpPost("accounts/{customerId:guid}/adjust-points")]
     [ProducesResponseType(typeof(ApiResponse<LoyaltyAccountDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AdjustPoints(Guid customerId, [FromBody] AdjustPointsRequest req, CancellationToken ct)
     {
-        var account = await loyaltyService.AdjustPointsAsync(customerId, req.Points, req.Reason, ct);
-        return Ok(ApiResponse<LoyaltyAccountDto>.CreateSuccess(account, "Loyalty points adjusted successfully."));
+        try
+        {
+            var account = await loyaltyService.AdjustPointsAsync(customerId, req.Points, req.Reason, ct);
+            return Ok(ApiResponse<LoyaltyAccountDto>.CreateSuccess(account, "Loyalty points adjusted successfully."));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ApiResponse<object?>(null, false, ex.Message));
+        }
     }
 }
