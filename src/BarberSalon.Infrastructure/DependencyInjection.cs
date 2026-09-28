@@ -34,17 +34,21 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>((sp, options) =>
         {
             var config = configuration ?? sp.GetService<IConfiguration>();
-            var provider = config?["DatabaseProvider"]
-                ?? (config?.GetConnectionString("DefaultConnection")?.StartsWith("InMemory", StringComparison.OrdinalIgnoreCase) == true ? "InMemory" : "Npgsql");
             var connectionString = config?.GetConnectionString("DefaultConnection")
-                ?? "Host=localhost;Database=barber_salon;Username=postgres;Password=postgres";
+                ?? "Host=localhost;Port=5432;Database=barber_salon;Username=postgres;Password=postgres;";
+            var provider = config?["DatabaseProvider"]
+                ?? (connectionString.StartsWith("InMemory", StringComparison.OrdinalIgnoreCase) ? "InMemory" : "PostgreSQL");
 
-            if (provider.Equals("InMemory", StringComparison.OrdinalIgnoreCase))
+            var isInMemory = provider.Equals("InMemory", StringComparison.OrdinalIgnoreCase)
+                || connectionString.StartsWith("InMemory", StringComparison.OrdinalIgnoreCase);
+
+            if (isInMemory)
             {
                 options.UseInMemoryDatabase("BarberSalonDb");
             }
             else
             {
+                // Supports "PostgreSQL", "Postgres", "Npgsql", and default PostgreSQL provider
                 options.UseNpgsql(connectionString);
             }
         });
