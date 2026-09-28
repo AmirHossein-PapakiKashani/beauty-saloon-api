@@ -292,7 +292,7 @@ public sealed class DashboardService
             string suggestedAction = riskLevel switch
             {
                 "high" when appointmentsCount > 0 => "ارسال پیامک تخفیف بازگشت — بیش از ۳ هفته غایب",
-                "high" => "تماس خوشآمدگویی — مشتری جدید بدون مراجعه",
+                "high" => "تماس خوش‌آمدگویی — مشتری جدید بدون مراجعه",
                 "medium" => "یادآوری نوبت + پیشنهاد سرویس مکمل",
                 _ => $"پیگیری ملایم — {daysSince} روز از آخرین مراجعه"
             };
@@ -342,18 +342,13 @@ public sealed class DashboardService
 
         var allAppointments = await _appointmentRepository.GetAllAsync(cancellationToken);
 
-        // All 17 slots: 09:00 to 16:30 in 30-min increments
+        // All 16 slots: 09:00 to 16:30 in 30-min increments
         var slots = new List<TimeOnly>();
         for (var hour = 9; hour <= 16; hour++)
         {
             slots.Add(new TimeOnly(hour, 0));
-            if (hour < 16 || true) // include 16:30 too
-            {
-                slots.Add(new TimeOnly(hour, 30));
-            }
+            slots.Add(new TimeOnly(hour, 30));
         }
-        // Remove 17:00 — we only want up to 16:30 (17 slots: 9:00..16:30)
-        slots = slots.Where(s => s <= new TimeOnly(16, 30)).ToList();
 
         var gaps = new List<TimeGapDto>();
 
