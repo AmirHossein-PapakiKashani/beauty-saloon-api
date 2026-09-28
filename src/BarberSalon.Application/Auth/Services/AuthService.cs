@@ -5,6 +5,7 @@ using BarberSalon.Application.Common.Exceptions;
 using BarberSalon.Application.Common.Interfaces;
 using BarberSalon.Domain.Auth.Entities;
 using BarberSalon.Domain.Auth.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace BarberSalon.Application.Auth.Services;
 
@@ -13,6 +14,14 @@ namespace BarberSalon.Application.Auth.Services;
 /// </summary>
 public sealed class AuthService
 {
+    public static readonly IReadOnlySet<string> DemoPhoneNumbers = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "09120000000",
+        "09121234567",
+        "09121112233",
+        "09121111111"
+    };
+
     private static readonly Regex PhoneRegex = new(@"^(?:0|\+98)?9\d{9}$", RegexOptions.Compiled);
     private static readonly Regex NumericCodeRegex = new(@"^\d{5}$", RegexOptions.Compiled);
     private const int DefaultTtlSeconds = 300;
@@ -23,6 +32,7 @@ public sealed class AuthService
     private readonly IOtpGenerator _otpGenerator;
     private readonly IClock _clock;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<AuthService>? _logger;
 
     /// <summary>
     /// Initializes a new instance of <see cref="AuthService"/>.
@@ -33,7 +43,8 @@ public sealed class AuthService
         ISmsService smsService,
         IOtpGenerator otpGenerator,
         IClock clock,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ILogger<AuthService>? logger = null)
     {
         _otpRepository = otpRepository;
         _userRepository = userRepository;
@@ -41,6 +52,7 @@ public sealed class AuthService
         _otpGenerator = otpGenerator;
         _clock = clock;
         _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
     /// <summary>
@@ -76,7 +88,11 @@ public sealed class AuthService
         }
 
         // Generate 5-digit verification code
-        var code = _otpGenerator.Generate();
+        var code = DemoPhoneNumbers.Contains(normalizedPhone)
+            ? "12345"
+            : _otpGenerator.Generate();
+
+        _logger?.LogInformation(">>> [AUTH OTP] Verification code for {PhoneNumber}: {Code} <<<", normalizedPhone, code);
 
         // Create domain entity with 5-minute TTL
         var otpCode = OtpCode.Create(normalizedPhone, code, now, TimeSpan.FromSeconds(DefaultTtlSeconds));
@@ -127,13 +143,23 @@ public sealed class AuthService
         var now = _clock.UtcNow;
 
         var activeOtp = await _otpRepository.GetActiveByPhoneNumberAsync(normalizedPhone, now, cancellationToken);
-        if (activeOtp is null || activeOtp.Code != code)
+        if (DemoPhoneNumbers.Contains(normalizedPhone) && code == "12345")
         {
-            throw new ValidationException("Invalid or expired OTP code.");
+            if (activeOtp is not null && !activeOtp.IsUsed)
+            {
+                activeOtp.MarkAsUsed(now);
+            }
         }
+        else
+        {
+            if (activeOtp is null || activeOtp.Code != code)
+            {
+                throw new ValidationException("Invalid or expired OTP code.");
+            }
 
-        // Mark OTP as used (verifies domain invariant and consumes code)
-        activeOtp.MarkAsUsed(now);
+            // Mark OTP as used (verifies domain invariant and consumes code)
+            activeOtp.MarkAsUsed(now);
+        }
 
         // Retrieve existing user or create a new user profile
         var user = await _userRepository.GetByPhoneNumberAsync(normalizedPhone, cancellationToken);

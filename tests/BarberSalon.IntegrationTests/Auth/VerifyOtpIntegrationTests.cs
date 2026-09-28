@@ -224,5 +224,76 @@ public class VerifyOtpIntegrationTests : IClassFixture<BarberSalonWebFactory>
         envelope!.Success.Should().BeFalse();
     }
 
+    [Fact]
+    public async Task VerifyOtp_WithDemoAdmin_Returns200AndAdminRole()
+    {
+        // Arrange
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var adminUser = await db.Users.FirstOrDefaultAsync(u => u.PhoneNumber == "09120000000");
+            if (adminUser == null)
+            {
+                adminUser = User.Create("09120000000", DateTime.UtcNow, UserRole.Admin, "مدیر سیستم");
+                await db.Users.AddAsync(adminUser);
+                await db.SaveChangesAsync();
+            }
+        }
+
+        var request = new VerifyOtpRequest("09120000000", "12345");
+
+        // Act
+        var response = await _client.PostAsJsonAsync(Endpoint, request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var envelope = await response.Content.ReadFromJsonAsync<ApiResponseEnvelope<VerifyOtpResponse>>(JsonOptions);
+        envelope.Should().NotBeNull();
+        envelope!.Success.Should().BeTrue();
+        envelope.Data.Should().NotBeNull();
+        envelope.Data!.Success.Should().BeTrue();
+        envelope.Data.User.Should().NotBeNull();
+        envelope.Data.User!.PhoneNumber.Should().Be("09120000000");
+        envelope.Data.User.Role.Should().Be("Admin");
+        envelope.Data.Token.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task VerifyOtp_WithDemoCustomer_Returns200AndCustomerRole()
+    {
+        // Arrange
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var customerUser = await db.Users.FirstOrDefaultAsync(u => u.PhoneNumber == "09121234567");
+            if (customerUser == null)
+            {
+                customerUser = User.Create("09121234567", DateTime.UtcNow, UserRole.Customer, "علی احمدی");
+                await db.Users.AddAsync(customerUser);
+                await db.SaveChangesAsync();
+            }
+        }
+
+        var request = new VerifyOtpRequest("09121234567", "12345");
+
+        // Act
+        var response = await _client.PostAsJsonAsync(Endpoint, request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var envelope = await response.Content.ReadFromJsonAsync<ApiResponseEnvelope<VerifyOtpResponse>>(JsonOptions);
+        envelope.Should().NotBeNull();
+        envelope!.Success.Should().BeTrue();
+        envelope.Data.Should().NotBeNull();
+        envelope.Data!.Success.Should().BeTrue();
+        envelope.Data.User.Should().NotBeNull();
+        envelope.Data.User!.PhoneNumber.Should().Be("09121234567");
+        envelope.Data.User.Role.Should().Be("Customer");
+        envelope.Data.Token.Should().NotBeNullOrWhiteSpace();
+    }
+
     private sealed record ApiResponseEnvelope<T>(T? Data, bool Success, string Message);
 }
+
