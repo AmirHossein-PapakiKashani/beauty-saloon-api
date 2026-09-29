@@ -25,11 +25,22 @@ public static class DependencyInjection
     /// <summary>Adds all application and infrastructure services to the container.</summary>
     public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration? configuration = null)
     {
+        var configuredOrigins = configuration?.GetSection("Cors:AllowedOrigins").Get<string[]>();
+        var defaultOrigins = new[]
+        {
+            "http://localhost:3000",
+            "http://localhost:3150",
+            "http://127.0.0.1:3150",
+            "https://luminous.thetechflow.ir",
+            "http://luminous.thetechflow.ir"
+        };
+        var origins = configuredOrigins is { Length: > 0 } ? configuredOrigins : defaultOrigins;
+
         services.AddCors(options =>
         {
             options.AddPolicy(CorsPolicyName, policy =>
             {
-                policy.WithOrigins("http://localhost:3000", "http://localhost:3150", "http://127.0.0.1:3150")
+                policy.WithOrigins(origins)
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials();

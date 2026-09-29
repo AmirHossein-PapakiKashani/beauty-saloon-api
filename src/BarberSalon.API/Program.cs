@@ -25,7 +25,17 @@ app.MapControllers();
 // Seed initial database state if empty (skip during integration testing)
 if (!app.Environment.IsEnvironment("Testing"))
 {
-    await BarberSalon.Infrastructure.Persistence.DbSeeder.SeedAsync(app.Services);
+    try
+    {
+        await BarberSalon.Infrastructure.Persistence.DbSeeder.SeedAsync(app.Services);
+    }
+    catch (Exception ex)
+    {
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogCritical(ex, "FATAL: Database connection or seeding failed on startup. Verify PostgreSQL is running and ConnectionStrings:DefaultConnection is correct. Error: {Message}", ex.Message);
+        Console.Error.WriteLine($"[CRITICAL STARTUP ERROR] Database connection or seeding failed: {ex.Message}");
+        throw;
+    }
 }
 
 app.Run();
