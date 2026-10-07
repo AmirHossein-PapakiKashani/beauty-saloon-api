@@ -4,6 +4,7 @@ using BarberSalon.Application.BeautyProfile.Services;
 using BarberSalon.Application.Booking.Services;
 using BarberSalon.Application.Customers.Services;
 using BarberSalon.Application.Loyalty.Services;
+using BarberSalon.Application.PlatformAdmin.Services;
 using BarberSalon.Application.Portfolio.Services;
 using BarberSalon.Application.Reminders.Services;
 using BarberSalon.Application.Reviews.Services;
@@ -62,6 +63,7 @@ public static class DependencyInjection
         services.AddScoped<BeautyProfileService>();
         services.AddScoped<UserService>();
         services.AddScoped<WaitlistService>();
+        services.AddScoped<PlatformAdminService>();
         services.AddInfrastructure(configuration);
         return services;
     }

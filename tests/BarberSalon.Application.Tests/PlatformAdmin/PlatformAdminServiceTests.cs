@@ -46,7 +46,7 @@ public class PlatformAdminServiceTests
         _salonRepo.CountAsync(true, Arg.Any<CancellationToken>()).Returns(4);
         _staffRepo.GetAllActiveAsync(Arg.Any<CancellationToken>())
             .Returns(new List<StaffMember> {
-                StaffMember.Create("Stylist One", "09121110001", "stylist-one", "Senior Stylist", 5)
+                StaffMember.Create("Stylist One", "stylist-one", "09121110001", "Bio", "Senior Stylist", 5)
             });
 
         var userList = new List<User>

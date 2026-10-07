@@ -31,6 +31,11 @@ public interface IUserRepository
     Task AddAsync(User user, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Returns all users in the system.
+    /// </summary>
+    Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Marks a modified user as updated in the EF Core change tracker.
     /// </summary>
     /// <param name="user">The user entity to update.</param>

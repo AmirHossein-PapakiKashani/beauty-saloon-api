@@ -40,6 +40,12 @@ public sealed class UserRepository : IUserRepository
     }
 
     /// <inheritdoc/>
+    public async Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Users.AsNoTracking().ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc/>
     public void Update(User user)
     {
         _context.Users.Update(user);
