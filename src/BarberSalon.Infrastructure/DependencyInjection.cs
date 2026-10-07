@@ -10,9 +10,11 @@ using BarberSalon.Application.Reviews.Interfaces;
 using BarberSalon.Application.SalonServices.Interfaces;
 using BarberSalon.Application.Staff.Interfaces;
 using BarberSalon.Application.Waitlist.Interfaces;
+using BarberSalon.Domain.Salons.Repositories;
 using BarberSalon.Infrastructure.Auth;
 using BarberSalon.Infrastructure.ExternalServices;
 using BarberSalon.Infrastructure.Persistence;
+using BarberSalon.Infrastructure.Persistence.Repositories;
 using BarberSalon.Infrastructure.Repositories;
 using BarberSalon.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +56,7 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
+        services.AddScoped<ISalonRepository, SalonRepository>();
         services.AddScoped<ISalonServiceRepository, SalonServiceRepository>();
         services.AddScoped<IStaffRepository, StaffRepository>();
         services.AddScoped<IAppointmentRepository, AppointmentRepository>();

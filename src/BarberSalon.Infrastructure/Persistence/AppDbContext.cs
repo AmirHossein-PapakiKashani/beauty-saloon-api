@@ -8,6 +8,7 @@ using BarberSalon.Domain.Portfolio.Entities;
 using BarberSalon.Domain.Reminders.Entities;
 using BarberSalon.Domain.Reviews.Entities;
 using BarberSalon.Domain.SalonServices.Entities;
+using BarberSalon.Domain.Salons.Entities;
 using BarberSalon.Domain.Staff.Entities;
 using BarberSalon.Domain.Waitlist.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +36,9 @@ public class AppDbContext : DbContext, IUnitOfWork
 
     /// <summary>Salon services table.</summary>
     public DbSet<SalonService> SalonServices => Set<SalonService>();
+
+    /// <summary>Salons table.</summary>
+    public DbSet<Salon> Salons => Set<Salon>();
 
     /// <summary>Staff members table.</summary>
     public DbSet<StaffMember> StaffMembers => Set<StaffMember>();
