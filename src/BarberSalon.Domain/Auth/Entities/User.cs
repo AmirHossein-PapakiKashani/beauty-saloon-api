@@ -21,6 +21,9 @@ public sealed class User : BaseEntity
     /// <summary>Whether the user account is active.</summary>
     public bool IsActive { get; private set; }
 
+    /// <summary>Timestamp of the user's most recent active activity or login.</summary>
+    public DateTime? LastActiveAt { get; private set; }
+
     // Parameterless constructor for EF Core
     private User() : base() { }
 
@@ -106,6 +109,16 @@ public sealed class User : BaseEntity
     public void Activate()
     {
         IsActive = true;
+        Touch();
+    }
+
+    /// <summary>
+    /// Records recent activity timestamp for live online monitoring.
+    /// </summary>
+    /// <param name="timestamp">The active UTC timestamp.</param>
+    public void TouchActive(DateTime timestamp)
+    {
+        LastActiveAt = timestamp;
         Touch();
     }
 

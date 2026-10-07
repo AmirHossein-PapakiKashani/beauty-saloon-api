@@ -12,5 +12,8 @@ public enum UserRole
     Staff = 2,
 
     /// <summary>Administrator with full access to salon management, services, staff, and analytics.</summary>
-    Admin = 3
+    Admin = 3,
+
+    /// <summary>Platform Administrator with full access across all salons and platform entities.</summary>
+    SuperAdmin = 4
 }
