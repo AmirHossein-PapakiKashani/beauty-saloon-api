@@ -2,7 +2,9 @@ using BarberSalon.Application.Common.Exceptions;
 using BarberSalon.Application.Common.Interfaces;
 using BarberSalon.Application.SalonServices.DTOs;
 using BarberSalon.Application.SalonServices.Interfaces;
+using BarberSalon.Application.Staff.Interfaces;
 using BarberSalon.Domain.SalonServices.Entities;
+using BarberSalon.Domain.Staff.Entities;
 
 namespace BarberSalon.Application.SalonServices.Services;
 
@@ -14,28 +16,46 @@ public sealed class SalonServiceManager
 {
     private readonly ISalonServiceRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IStaffRepository? _staffRepository;
 
     /// <summary>Creates a new instance of <see cref="SalonServiceManager"/>.</summary>
     /// <param name="repository">Repository for salon services.</param>
     /// <param name="unitOfWork">Unit of work for committing changes.</param>
-    public SalonServiceManager(ISalonServiceRepository repository, IUnitOfWork unitOfWork)
+    /// <param name="staffRepository">Optional staff repository for computing staff-specific price ranges.</param>
+    public SalonServiceManager(
+        ISalonServiceRepository repository,
+        IUnitOfWork unitOfWork,
+        IStaffRepository? staffRepository = null)
     {
         _repository = repository;
         _unitOfWork = unitOfWork;
+        _staffRepository = staffRepository;
     }
 
     /// <summary>Returns all active services as DTOs.</summary>
     public async Task<List<SalonServiceDto>> GetAllActiveAsync(CancellationToken cancellationToken = default)
     {
         var services = await _repository.GetAllActiveAsync(cancellationToken);
-        return services.Select(MapToDto).ToList();
+        List<StaffMember>? activeStaff = null;
+        if (_staffRepository != null)
+        {
+            activeStaff = await _staffRepository.GetAllActiveAsync(cancellationToken);
+        }
+
+        return services.Select(s => MapToDto(s, activeStaff)).ToList();
     }
 
     /// <summary>Returns all services (active and archived) as DTOs. For Admin use.</summary>
     public async Task<List<SalonServiceDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var services = await _repository.GetAllAsync(cancellationToken);
-        return services.Select(MapToDto).ToList();
+        List<StaffMember>? activeStaff = null;
+        if (_staffRepository != null)
+        {
+            activeStaff = await _staffRepository.GetAllActiveAsync(cancellationToken);
+        }
+
+        return services.Select(s => MapToDto(s, activeStaff)).ToList();
     }
 
     /// <summary>
@@ -47,7 +67,13 @@ public sealed class SalonServiceManager
         var service = await _repository.GetByIdAsync(id, cancellationToken)
             ?? throw new NotFoundException(nameof(SalonService), id);
 
-        return MapToDto(service);
+        List<StaffMember>? activeStaff = null;
+        if (_staffRepository != null)
+        {
+            activeStaff = await _staffRepository.GetAllActiveAsync(cancellationToken);
+        }
+
+        return MapToDto(service, activeStaff);
     }
 
     /// <summary>
@@ -121,15 +147,34 @@ public sealed class SalonServiceManager
 
     // ─── Private Helpers ────────────────────────────────────────────────────
 
-    private static SalonServiceDto MapToDto(SalonService s) => new(
-        s.Id,
-        s.Name,
-        s.Description,
-        s.DurationMinutes,
-        s.Price,
-        s.Category,
-        s.IsActive,
-        s.CreatedAt,
-        s.UpdatedAt
-    );
+    private static SalonServiceDto MapToDto(SalonService s, List<StaffMember>? activeStaff = null)
+    {
+        decimal minPrice = s.Price;
+        decimal maxPrice = s.Price;
+
+        if (activeStaff != null)
+        {
+            var offeringStaff = activeStaff.Where(st => st.ServiceIds.Contains(s.Id)).ToList();
+            if (offeringStaff.Count > 0)
+            {
+                var prices = offeringStaff.Select(st => st.GetServicePrice(s.Id, s.Price)).ToList();
+                minPrice = prices.Min();
+                maxPrice = prices.Max();
+            }
+        }
+
+        return new(
+            s.Id,
+            s.Name,
+            s.Description,
+            s.DurationMinutes,
+            s.Price,
+            s.Category,
+            s.IsActive,
+            s.CreatedAt,
+            s.UpdatedAt,
+            minPrice,
+            maxPrice
+        );
+    }
 }

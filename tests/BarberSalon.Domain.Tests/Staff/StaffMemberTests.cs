@@ -231,4 +231,104 @@ public class StaffMemberTests
         // Assert
         staff.ServiceIds.Should().NotContain(serviceId);
     }
+
+    [Fact]
+    public void Create_WithServicePrices_InitializesCorrectly()
+    {
+        // Arrange
+        var serviceId = Guid.NewGuid();
+        var prices = new Dictionary<Guid, decimal> { [serviceId] = 200000m };
+
+        // Act
+        var staff = StaffMember.Create(
+            "خانم احمدی",
+            "ahmadi",
+            "09129876543",
+            "متخصص رنگ",
+            "متخصص رنگ",
+            8,
+            serviceIds: new List<Guid> { serviceId },
+            servicePrices: prices
+        );
+
+        // Assert
+        staff.ServicePrices.Should().ContainKey(serviceId);
+        staff.ServicePrices[serviceId].Should().Be(200000m);
+    }
+
+    [Fact]
+    public void SetServicePrice_WithValidPrice_SetsPrice()
+    {
+        // Arrange
+        var serviceId = Guid.NewGuid();
+        var staff = StaffMember.Create("Ali Karimi", "karimi", "09121234567", "Bio", "Barber", 5);
+
+        // Act
+        staff.SetServicePrice(serviceId, 180000m);
+
+        // Assert
+        staff.ServicePrices.Should().ContainKey(serviceId);
+        staff.ServicePrices[serviceId].Should().Be(180000m);
+        staff.ServiceIds.Should().Contain(serviceId);
+    }
+
+    [Fact]
+    public void SetServicePrice_WithNegativePrice_ThrowsDomainException()
+    {
+        // Arrange
+        var serviceId = Guid.NewGuid();
+        var staff = StaffMember.Create("Ali Karimi", "karimi", "09121234567", "Bio", "Barber", 5);
+
+        // Act
+        var act = () => staff.SetServicePrice(serviceId, -100m);
+
+        // Assert
+        act.Should().Throw<DomainException>()
+            .WithMessage("*Price cannot be negative*");
+    }
+
+    [Fact]
+    public void GetServicePrice_WhenCustomPriceExists_ReturnsCustomPrice()
+    {
+        // Arrange
+        var serviceId = Guid.NewGuid();
+        var staff = StaffMember.Create("Ali Karimi", "karimi", "09121234567", "Bio", "Barber", 5);
+        staff.SetServicePrice(serviceId, 250000m);
+
+        // Act
+        var price = staff.GetServicePrice(serviceId, defaultPrice: 150000m);
+
+        // Assert
+        price.Should().Be(250000m);
+    }
+
+    [Fact]
+    public void GetServicePrice_WhenNoCustomPriceExists_ReturnsDefaultPrice()
+    {
+        // Arrange
+        var serviceId = Guid.NewGuid();
+        var staff = StaffMember.Create("Ali Karimi", "karimi", "09121234567", "Bio", "Barber", 5);
+
+        // Act
+        var price = staff.GetServicePrice(serviceId, defaultPrice: 150000m);
+
+        // Assert
+        price.Should().Be(150000m);
+    }
+
+    [Fact]
+    public void RemoveService_WhenCustomPriceExists_RemovesCustomPriceToo()
+    {
+        // Arrange
+        var serviceId = Guid.NewGuid();
+        var staff = StaffMember.Create("Ali Karimi", "karimi", "09121234567", "Bio", "Barber", 5, serviceIds: new List<Guid> { serviceId });
+        staff.SetServicePrice(serviceId, 180000m);
+
+        // Act
+        staff.RemoveService(serviceId);
+
+        // Assert
+        staff.ServiceIds.Should().NotContain(serviceId);
+        staff.ServicePrices.Should().NotContainKey(serviceId);
+    }
 }

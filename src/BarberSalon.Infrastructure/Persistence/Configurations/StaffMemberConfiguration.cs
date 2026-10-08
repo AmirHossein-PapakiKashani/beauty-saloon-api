@@ -48,6 +48,12 @@ public sealed class StaffMemberConfiguration : IEntityTypeConfiguration<StaffMem
                 v => JsonSerializer.Deserialize<List<Guid>>(v, (JsonSerializerOptions?)null) ?? new List<Guid>()
             );
 
+        builder.Property(s => s.ServicePrices)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<Dictionary<Guid, decimal>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<Guid, decimal>()
+            );
+
         builder.HasIndex(s => s.Slug)
             .IsUnique()
             .HasDatabaseName("IX_StaffMembers_Slug");

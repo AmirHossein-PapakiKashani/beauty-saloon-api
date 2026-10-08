@@ -109,7 +109,8 @@ public static class DbSeeder
                 "آرایشگر ارشد",
                 10,
                 specialties: new List<string> { "fade", "اصلاح صورت", "خط‌کشی" },
-                serviceIds: new List<Guid> { s1.Id, s3.Id, s7.Id }
+                serviceIds: new List<Guid> { s1.Id, s3.Id, s7.Id },
+                servicePrices: new Dictionary<Guid, decimal> { [s1.Id] = 180000m, [s3.Id] = 90000m, [s7.Id] = 130000m }
             );
 
             var staff2 = StaffMember.Create(
@@ -120,7 +121,8 @@ public static class DbSeeder
                 "متخصص رنگ",
                 8,
                 specialties: new List<string> { "balayage", "هایلایت", "رنگ دودی" },
-                serviceIds: new List<Guid> { s2.Id, s4.Id, s5.Id, s6.Id }
+                serviceIds: new List<Guid> { s2.Id, s4.Id, s5.Id, s6.Id },
+                servicePrices: new Dictionary<Guid, decimal> { [s2.Id] = 400000m, [s4.Id] = 280000m, [s5.Id] = 850000m, [s6.Id] = 650000m }
             );
 
             var staff3 = StaffMember.Create(
@@ -131,7 +133,8 @@ public static class DbSeeder
                 "آرایشگر",
                 5,
                 specialties: new List<string> { "استایل", "فید مدرن" },
-                serviceIds: new List<Guid> { s1.Id, s3.Id }
+                serviceIds: new List<Guid> { s1.Id, s3.Id },
+                servicePrices: new Dictionary<Guid, decimal> { [s1.Id] = 130000m, [s3.Id] = 75000m }
             );
 
             context.StaffMembers.AddRange(staff1, staff2, staff3);

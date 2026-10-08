@@ -177,12 +177,14 @@ public sealed class BookingService
             throw new ValidationException("The selected time slot is already booked for this staff member.");
         }
 
+        var appointmentPrice = staff.GetServicePrice(service.Id, service.Price);
+
         var appointment = Appointment.Create(
             user.Id,
             staff.Id,
             service.Id,
             timeSlot,
-            service.Price,
+            appointmentPrice,
             request.Notes);
 
         await _appointmentRepository.AddAsync(appointment, cancellationToken);

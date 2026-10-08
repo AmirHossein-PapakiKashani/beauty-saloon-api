@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using BarberSalon.Application.SalonServices.DTOs;
 using BarberSalon.Domain.SalonServices.Entities;
+using BarberSalon.Domain.Staff.Entities;
 using BarberSalon.Infrastructure.Persistence;
 using BarberSalon.IntegrationTests.Helpers;
 using FluentAssertions;
@@ -122,6 +123,60 @@ public class GetActiveSalonServicesTests : IClassFixture<BarberSalonWebFactory>
         envelope.Data!.Id.Should().Be(serviceId);
         envelope.Data.Name.Should().Be("مش فویلی");
         envelope.Data.Price.Should().Be(600000m);
+    }
+
+    [Fact]
+    public async Task GetActiveSalonServices_WithMultipleStaffCustomPrices_ReturnsDynamicMinAndMaxPrice()
+    {
+        // Arrange
+        Guid serviceId;
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var service = SalonService.Create("کوتاهی مدرن", "کوتاهی و استایل", 30, 200000m, "haircut");
+            db.SalonServices.Add(service);
+            await db.SaveChangesAsync();
+            serviceId = service.Id;
+
+            var staff1 = StaffMember.Create(
+                "آرایشگر ارزان",
+                $"cheap-{Guid.NewGuid():N}",
+                $"0912{Random.Shared.Next(1000000, 9999999)}",
+                "Junior Barber",
+                "Barber",
+                2,
+                serviceIds: new List<Guid> { serviceId },
+                servicePrices: new Dictionary<Guid, decimal> { [serviceId] = 170000m });
+
+            var staff2 = StaffMember.Create(
+                "آرایشگر گران",
+                $"expensive-{Guid.NewGuid():N}",
+                $"0912{Random.Shared.Next(1000000, 9999999)}",
+                "Master Barber",
+                "Master",
+                10,
+                serviceIds: new List<Guid> { serviceId },
+                servicePrices: new Dictionary<Guid, decimal> { [serviceId] = 290000m });
+
+            db.StaffMembers.AddRange(staff1, staff2);
+            await db.SaveChangesAsync();
+        }
+
+        // Act
+        var response = await _client.GetAsync(Endpoint);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var envelope = await response.Content.ReadFromJsonAsync<ApiResponseEnvelope<List<SalonServiceDto>>>(JsonOptions);
+        envelope.Should().NotBeNull();
+        envelope!.Success.Should().BeTrue();
+
+        var matched = envelope.Data.FirstOrDefault(s => s.Id == serviceId);
+        matched.Should().NotBeNull();
+        matched!.Price.Should().Be(200000m);
+        matched.MinPrice.Should().Be(170000m);
+        matched.MaxPrice.Should().Be(290000m);
     }
 
     private sealed record ApiResponseEnvelope<T>(T Data, bool Success, string Message);

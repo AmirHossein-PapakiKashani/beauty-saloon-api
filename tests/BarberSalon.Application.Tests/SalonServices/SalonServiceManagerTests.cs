@@ -3,7 +3,9 @@ using BarberSalon.Application.Common.Interfaces;
 using BarberSalon.Application.SalonServices.DTOs;
 using BarberSalon.Application.SalonServices.Interfaces;
 using BarberSalon.Application.SalonServices.Services;
+using BarberSalon.Application.Staff.Interfaces;
 using BarberSalon.Domain.SalonServices.Entities;
+using BarberSalon.Domain.Staff.Entities;
 using FluentAssertions;
 using NSubstitute;
 using Xunit;
@@ -212,5 +214,57 @@ public class SalonServiceManagerTests
 
         // Assert
         await act.Should().ThrowAsync<NotFoundException>();
+    }
+
+    [Fact]
+    public async Task GetAllActiveAsync_WithStaffRepository_ComputesMinAndMaxPricesFromStaff()
+    {
+        // Arrange
+        var staffRepo = Substitute.For<IStaffRepository>();
+        var managerWithStaff = new SalonServiceManager(_repository, _unitOfWork, staffRepo);
+
+        var service = SalonService.Create("Men's Haircut", "Haircut", 30, 150000m, "haircut");
+        _repository.GetAllActiveAsync(Arg.Any<CancellationToken>()).Returns(new List<SalonService> { service });
+
+        var staff1 = StaffMember.Create("Ali", "ali", "09121111111", "Bio", "Barber", 5, serviceIds: new List<Guid> { service.Id });
+        staff1.SetServicePrice(service.Id, 180000m);
+
+        var staff2 = StaffMember.Create("Reza", "reza", "09122222222", "Bio", "Barber", 3, serviceIds: new List<Guid> { service.Id });
+        staff2.SetServicePrice(service.Id, 130000m);
+
+        staffRepo.GetAllActiveAsync(Arg.Any<CancellationToken>()).Returns(new List<StaffMember> { staff1, staff2 });
+
+        // Act
+        var result = await managerWithStaff.GetAllActiveAsync(CancellationToken.None);
+
+        // Assert
+        result.Should().HaveCount(1);
+        result[0].Price.Should().Be(150000m);
+        result[0].MinPrice.Should().Be(130000m);
+        result[0].MaxPrice.Should().Be(180000m);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_WithStaffRepository_ComputesMinAndMaxPricesFromStaff()
+    {
+        // Arrange
+        var staffRepo = Substitute.For<IStaffRepository>();
+        var managerWithStaff = new SalonServiceManager(_repository, _unitOfWork, staffRepo);
+
+        var service = SalonService.Create("Men's Haircut", "Haircut", 30, 150000m, "haircut");
+        _repository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>()).Returns(service);
+
+        var staff1 = StaffMember.Create("Ahmadi", "ahmadi", "09121111111", "Bio", "Colorist", 8, serviceIds: new List<Guid> { service.Id });
+        staff1.SetServicePrice(service.Id, 250000m);
+
+        staffRepo.GetAllActiveAsync(Arg.Any<CancellationToken>()).Returns(new List<StaffMember> { staff1 });
+
+        // Act
+        var result = await managerWithStaff.GetByIdAsync(service.Id, CancellationToken.None);
+
+        // Assert
+        result.Price.Should().Be(150000m);
+        result.MinPrice.Should().Be(250000m);
+        result.MaxPrice.Should().Be(250000m);
     }
 }

@@ -10,5 +10,7 @@ public record SalonServiceDto(
     string Category,
     bool IsActive,
     DateTime CreatedAt,
-    DateTime UpdatedAt
+    DateTime UpdatedAt,
+    decimal? MinPrice = null,
+    decimal? MaxPrice = null
 );

@@ -557,4 +557,26 @@ public class BookingServiceCreateAppointmentTests
         await act.Should().ThrowAsync<NotFoundException>()
             .WithMessage($"*{nameof(Appointment)}*");
     }
+
+    [Fact]
+    public async Task CreateAppointmentAsync_WhenStaffHasCustomServicePrice_UsesStaffCustomPrice()
+    {
+        // Arrange
+        _staff.SetServicePrice(_salonService.Id, 220000m);
+        var request = new CreateAppointmentRequest(
+            _customer.Id,
+            _staff.Id,
+            _salonService.Id,
+            _validDateStr,
+            _validTimeStr,
+            "سفارشی");
+
+        // Act
+        var response = await _service.CreateAppointmentAsync(request);
+
+        // Assert
+        response.Appointment.Price.Should().Be(220000m);
+        await _appointmentRepository.Received(1).AddAsync(Arg.Is<Appointment>(a =>
+            a.Price == 220000m), Arg.Any<CancellationToken>());
+    }
 }

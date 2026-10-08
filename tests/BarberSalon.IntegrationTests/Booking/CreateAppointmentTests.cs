@@ -380,5 +380,70 @@ public class CreateAppointmentTests : IClassFixture<BarberSalonWebFactory>
         envelope!.Success.Should().BeFalse();
     }
 
+    [Fact]
+    public async Task CreateAppointment_WithStaffCustomServicePrice_PersistsCustomStaffPrice()
+    {
+        // Arrange
+        Guid customerId;
+        Guid staffId;
+        Guid serviceId;
+        var dateStr = GetFutureDateString(5);
+        var timeStr = "14:00";
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var user = User.Create($"0912{Random.Shared.Next(1000000, 9999999)}", DateTime.UtcNow, UserRole.Customer, "مشتری قیمت سفارشی");
+            var service = SalonService.Create("رنگ و لایت", "رنگ تخصصی مو", 60, 300000m, "Color");
+            var staff = StaffMember.Create(
+                "استاد برتر",
+                $"master-{Guid.NewGuid():N}",
+                $"0912{Random.Shared.Next(1000000, 9999999)}",
+                "آرایشگر ارشد",
+                "Senior Barber",
+                7,
+                serviceIds: new List<Guid> { service.Id },
+                servicePrices: new Dictionary<Guid, decimal> { [service.Id] = 450000m });
+
+            db.Users.Add(user);
+            db.SalonServices.Add(service);
+            db.StaffMembers.Add(staff);
+            await db.SaveChangesAsync();
+
+            customerId = user.Id;
+            staffId = staff.Id;
+            serviceId = service.Id;
+        }
+
+        var request = new CreateAppointmentRequest(
+            customerId,
+            staffId,
+            serviceId,
+            dateStr,
+            timeStr,
+            "سفارش با دستمزد سفارشی آرایشگر");
+
+        // Act
+        var response = await _client.PostAsJsonAsync(Endpoint, request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var envelope = await response.Content.ReadFromJsonAsync<ApiResponseEnvelope<CreateAppointmentResponse>>(JsonOptions);
+        envelope.Should().NotBeNull();
+        envelope!.Success.Should().BeTrue();
+
+        var apt = envelope.Data.Appointment;
+        apt.Price.Should().Be(450000m); // Custom staff rate should be used instead of service base price (300000m)
+
+        // Verify in database via GET by ID
+        var getResponse = await _client.GetAsync($"{Endpoint}/{apt.Id}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var getEnvelope = await getResponse.Content.ReadFromJsonAsync<ApiResponseEnvelope<AppointmentDto>>(JsonOptions);
+        getEnvelope.Should().NotBeNull();
+        getEnvelope!.Data.Price.Should().Be(450000m);
+    }
+
     private sealed record ApiResponseEnvelope<T>(T Data, bool Success, string Message);
 }

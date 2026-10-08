@@ -133,5 +133,42 @@ public sealed class StaffCrudTests : IClassFixture<BarberSalonWebFactory>
         var fetched = (await getRes.Content.ReadFromJsonAsync<ApiResponse<StaffDto>>())!.Data;
         fetched.IsActive.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task Post_WithServicePrices_PersistsAndReturnsServicePrices()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..6];
+        var serviceId = Guid.NewGuid();
+        var prices = new Dictionary<Guid, decimal> { [serviceId] = 250000m };
+
+        var request = new CreateStaffRequest(
+            $"Staff {suffix}",
+            $"staff-{suffix}",
+            $"0912{Random.Shared.Next(1000000, 9999999)}",
+            "Color Specialist",
+            "Senior Colorist",
+            8,
+            new List<string> { "Color", "Balayage" },
+            new List<Guid> { serviceId },
+            null,
+            null,
+            prices);
+
+        var response = await _client.PostAsJsonAsync("/api/v1/staff", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponse<StaffDto>>();
+        body.Should().NotBeNull();
+        body!.Data.ServicePrices.Should().NotBeNull();
+        body.Data.ServicePrices.Should().ContainKey(serviceId);
+        body.Data.ServicePrices![serviceId].Should().Be(250000m);
+
+        // Fetch by ID to ensure it persisted in database
+        var getRes = await _client.GetAsync($"/api/v1/staff/{body.Data.Id}");
+        var fetched = (await getRes.Content.ReadFromJsonAsync<ApiResponse<StaffDto>>())!.Data;
+        fetched.ServicePrices.Should().NotBeNull();
+        fetched.ServicePrices.Should().ContainKey(serviceId);
+        fetched.ServicePrices![serviceId].Should().Be(250000m);
+    }
 }
 

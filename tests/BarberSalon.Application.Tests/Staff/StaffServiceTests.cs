@@ -267,5 +267,60 @@ public class StaffServiceTests
         // Assert
         await act.Should().ThrowAsync<NotFoundException>();
     }
+
+    [Fact]
+    public async Task CreateAsync_WithServicePrices_PersistsAndReturnsMappedServicePrices()
+    {
+        // Arrange
+        var serviceId = Guid.NewGuid();
+        var prices = new Dictionary<Guid, decimal> { [serviceId] = 200000m };
+        var request = new CreateStaffRequest(
+            "Mrs. Ahmadi",
+            "ahmadi",
+            "09129876543",
+            "Colorist",
+            "Colorist",
+            8,
+            Services: new List<Guid> { serviceId },
+            ServicePrices: prices);
+        _repository.ExistsBySlugAsync(request.Slug, Arg.Any<CancellationToken>()).Returns(false);
+
+        // Act
+        var result = await _service.CreateAsync(request, CancellationToken.None);
+
+        // Assert
+        result.Name.Should().Be("Mrs. Ahmadi");
+        result.ServicePrices.Should().NotBeNull();
+        result.ServicePrices.Should().ContainKey(serviceId);
+        result.ServicePrices![serviceId].Should().Be(200000m);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithServicePrices_UpdatesAndReturnsMappedServicePrices()
+    {
+        // Arrange
+        var serviceId = Guid.NewGuid();
+        var staff = StaffMember.Create("Mrs. Ahmadi", "ahmadi", "09129876543", "Colorist", "Colorist", 8);
+        _repository.GetByIdAsync(staff.Id, Arg.Any<CancellationToken>()).Returns(staff);
+
+        var prices = new Dictionary<Guid, decimal> { [serviceId] = 250000m };
+        var request = new UpdateStaffRequest(
+            "Mrs. Ahmadi",
+            "ahmadi",
+            "09129876543",
+            "Colorist",
+            "Senior Colorist",
+            9,
+            Services: new List<Guid> { serviceId },
+            ServicePrices: prices);
+
+        // Act
+        var result = await _service.UpdateAsync(staff.Id, request, CancellationToken.None);
+
+        // Assert
+        result.ServicePrices.Should().NotBeNull();
+        result.ServicePrices.Should().ContainKey(serviceId);
+        result.ServicePrices![serviceId].Should().Be(250000m);
+    }
 }
 

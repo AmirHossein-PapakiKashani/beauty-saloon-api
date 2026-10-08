@@ -13,5 +13,6 @@ public record UpdateStaffRequest(
     List<string>? Specialties = null,
     List<Guid>? Services = null,
     Guid? UserId = null,
-    string? WorkingHoursJson = null
+    string? WorkingHoursJson = null,
+    Dictionary<Guid, decimal>? ServicePrices = null
 );

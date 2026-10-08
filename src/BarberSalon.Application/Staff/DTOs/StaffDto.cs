@@ -18,5 +18,6 @@ public record StaffDto(
     List<string> Specialties,
     string WorkingHoursJson,
     DateTime CreatedAt,
-    DateTime UpdatedAt
+    DateTime UpdatedAt,
+    Dictionary<Guid, decimal>? ServicePrices = null
 );

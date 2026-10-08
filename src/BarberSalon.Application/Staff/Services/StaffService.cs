@@ -80,7 +80,8 @@ public sealed class StaffService
             request.Specialties,
             request.Services,
             request.UserId,
-            request.WorkingHoursJson);
+            request.WorkingHoursJson,
+            request.ServicePrices);
 
         await _repository.AddAsync(member, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -113,7 +114,8 @@ public sealed class StaffService
             request.Specialties,
             request.Services,
             request.UserId,
-            request.WorkingHoursJson);
+            request.WorkingHoursJson,
+            request.ServicePrices);
 
         _repository.Update(member);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -159,6 +161,7 @@ public sealed class StaffService
         s.Specialties,
         s.WorkingHoursJson,
         s.CreatedAt,
-        s.UpdatedAt
+        s.UpdatedAt,
+        s.ServicePrices
     );
 }
