@@ -21,20 +21,41 @@ jobs:
         run: dotnet build src/BarberSalon.API/BarberSalon.API.csproj --configuration Release --no-restore
 
       - name: Prepare deployment folder
+        shell: powershell
         run: |
           $deployPath = "C:\inetpub\wwwroot\luminous"
-        
-          if (Test-Path "$deployPath") {
-              Remove-Item "$deployPath" -Recurse -Force
+
+          if (!(Test-Path $deployPath)) {
+              New-Item -ItemType Directory -Path $deployPath -Force
           }
 
-          New-Item -ItemType Directory -Path "$deployPath" -Force
+          # Take ASP.NET Core application offline
+          New-Item "$deployPath\app_offline.htm" -ItemType File -Force
+
+          Start-Sleep -Seconds 2
+
+          # Remove old files except web.config and app_offline.htm
+          Get-ChildItem $deployPath |
+              Where-Object {
+                  $_.Name -ne "web.config" -and
+                  $_.Name -ne "app_offline.htm"
+              } |
+              Remove-Item -Recurse -Force
 
           Write-Host "Deployment folder prepared:"
-          Write-Host "$deployPath"
+          Write-Host $deployPath
 
       - name: Publish
         run: dotnet publish src/BarberSalon.API/BarberSalon.API.csproj --configuration Release --output "C:\inetpub\wwwroot\luminous" --no-restore
+
+      - name: Bring application online
+        shell: powershell
+        run: |
+          $deployPath = "C:\inetpub\wwwroot\luminous"
+
+          Remove-Item "$deployPath\app_offline.htm" -Force
+
+          Write-Host "New version is online."
 
       - name: Show published files
         run: Get-ChildItem "C:\inetpub\wwwroot\luminous" -Recurse
