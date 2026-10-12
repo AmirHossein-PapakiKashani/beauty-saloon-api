@@ -23,18 +23,30 @@ jobs:
       - name: Prepare deployment folder
         shell: powershell
         run: |
-          $deployPath = "C:\inetpub\wwwroot\luminous"
+          $appPoolName = "luminous"
+          $deployPath  = "C:\inetpub\wwwroot\luminous"
 
           if (!(Test-Path $deployPath)) {
               New-Item -ItemType Directory -Path $deployPath -Force
           }
 
-          # Take ASP.NET Core application offline
+          # 1. Stop AppPool first to release inprocess DLL file locks
+          Import-Module WebAdministration -ErrorAction SilentlyContinue
+          $pool = Get-WebAppPoolState -Name $appPoolName -ErrorAction SilentlyContinue
+          if ($pool -and $pool.Value -eq "Started") {
+              Write-Host "Stopping AppPool '$appPoolName' to release file locks..."
+              Stop-WebAppPool -Name $appPoolName
+              $timeout = 15; $elapsed = 0
+              while ((Get-WebAppPoolState -Name $appPoolName).Value -ne "Stopped" -and $elapsed -lt $timeout) {
+                  Start-Sleep -Seconds 1; $elapsed++
+              }
+              Write-Host "AppPool stopped after ${elapsed}s."
+          }
+
+          # 2. Belt-and-suspenders: drop app_offline.htm too
           New-Item "$deployPath\app_offline.htm" -ItemType File -Force
 
-          Start-Sleep -Seconds 2
-
-          # Remove old files except web.config, logs, and app_offline.htm
+          # 3. Remove old files except web.config, logs, and app_offline.htm
           Get-ChildItem $deployPath |
               Where-Object {
                   $_.Name -ne "web.config" -and
@@ -43,8 +55,7 @@ jobs:
               } |
               Remove-Item -Recurse -Force
 
-          Write-Host "Deployment folder prepared:"
-          Write-Host $deployPath
+          Write-Host "Deployment folder cleaned: $deployPath"
 
       - name: Publish
         run: dotnet publish src/BarberSalon.API/BarberSalon.API.csproj --configuration Release --output "C:\inetpub\wwwroot\luminous" --no-restore
@@ -52,7 +63,8 @@ jobs:
       - name: Bring application online & configure permissions
         shell: powershell
         run: |
-          $deployPath = "C:\inetpub\wwwroot\luminous"
+          $appPoolName = "luminous"
+          $deployPath  = "C:\inetpub\wwwroot\luminous"
 
           # 1. Ensure logs directory exists for stdout
           if (-not (Test-Path "$deployPath\logs")) {
@@ -63,21 +75,22 @@ jobs:
           icacls "$deployPath" /grant "IIS_IUSRS:(OI)(CI)RX" /t | Out-Null
           icacls "$deployPath\logs" /grant "IIS_IUSRS:(OI)(CI)M" /t | Out-Null
 
-          # 3. Bring application online
+          # 3. Remove app_offline
           if (Test-Path "$deployPath\app_offline.htm") {
               Remove-Item "$deployPath\app_offline.htm" -Force
           }
 
-          # 4. Touch web.config to trigger IIS application pool recycle
-          if (Test-Path "$deployPath\web.config") {
-              (Get-Item "$deployPath\web.config").LastWriteTime = Get-Date
+          # 4. Start the AppPool back up
+          Import-Module WebAdministration -ErrorAction SilentlyContinue
+          $pool = Get-WebAppPoolState -Name $appPoolName -ErrorAction SilentlyContinue
+          if ($pool -and $pool.Value -ne "Started") {
+              Write-Host "Starting AppPool '$appPoolName'..."
+              Start-WebAppPool -Name $appPoolName
+          } else {
+              Restart-WebAppPool -Name $appPoolName -ErrorAction SilentlyContinue
           }
 
-          # 5. Recycle AppPool via WebAdministration if available
-          Import-Module WebAdministration -ErrorAction SilentlyContinue
-          Restart-WebAppPool -Name "luminous" -ErrorAction SilentlyContinue
-
-          Write-Host "Application deployed, permissions set, and IIS notified."
+          Write-Host "Application deployed, permissions set, AppPool started."
 
       - name: Show published files
         run: Get-ChildItem "C:\inetpub\wwwroot\luminous" -Recurse
