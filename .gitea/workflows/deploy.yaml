@@ -67,12 +67,15 @@ jobs:
           $deployPath   = "C:\inetpub\wwwroot\luminous"
           $settingsFile = "$deployPath\appsettings.Production.json"
 
-          # Patch only ConnectionStrings:DefaultConnection — everything else stays intact
-          $json = Get-Content $settingsFile -Raw | ConvertFrom-Json
-          $json.ConnectionStrings.DefaultConnection = "$env:DB_CONNECTION_STRING"
-          $json | ConvertTo-Json -Depth 10 | Set-Content $settingsFile -Encoding UTF8
-
-          Write-Host "appsettings.Production.json patched with production connection string."
+          # Only patch if DB_CONNECTION_STRING secret is actually provided
+          if ($env:DB_CONNECTION_STRING -and $env:DB_CONNECTION_STRING.Trim() -ne "") {
+              $json = Get-Content $settingsFile -Raw | ConvertFrom-Json
+              $json.ConnectionStrings.DefaultConnection = "$env:DB_CONNECTION_STRING"
+              $json | ConvertTo-Json -Depth 10 | Set-Content $settingsFile -Encoding UTF8
+              Write-Host "appsettings.Production.json patched with production connection string from secret."
+          } else {
+              Write-Host "No DB_CONNECTION_STRING secret provided; keeping connection string from appsettings.Production.json."
+          }
 
       - name: Bring application online & configure permissions
         shell: powershell
