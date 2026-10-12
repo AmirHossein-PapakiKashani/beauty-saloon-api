@@ -11,6 +11,7 @@ using BarberSalon.Domain.SalonServices.Entities;
 using BarberSalon.Domain.Staff.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace BarberSalon.Infrastructure.Persistence;
 
@@ -25,6 +26,35 @@ public static class DbSeeder
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         await context.Database.EnsureCreatedAsync();
+
+        // Ensure schema evolution columns and tables exist if database was created prior to recent updates
+        if (context.Database.IsRelational())
+        {
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync(@"
+                    ALTER TABLE IF EXISTS ""Users"" ADD COLUMN IF NOT EXISTS ""LastActiveAt"" timestamp with time zone;
+                    ALTER TABLE IF EXISTS ""StaffMembers"" ADD COLUMN IF NOT EXISTS ""ServicePrices"" text;
+                    CREATE TABLE IF NOT EXISTS ""Salons"" (
+                        ""Id"" uuid NOT NULL PRIMARY KEY,
+                        ""Name"" character varying(100) NOT NULL,
+                        ""Slug"" character varying(100) NOT NULL,
+                        ""PhoneNumber"" character varying(20) NOT NULL,
+                        ""Address"" character varying(300) NOT NULL,
+                        ""Description"" character varying(500),
+                        ""IsActive"" boolean NOT NULL,
+                        ""CreatedAt"" timestamp with time zone NOT NULL,
+                        ""UpdatedAt"" timestamp with time zone NOT NULL
+                    );
+                    CREATE UNIQUE INDEX IF NOT EXISTS ""IX_Salons_Slug"" ON ""Salons"" (""Slug"");
+                ");
+            }
+            catch (Exception ex)
+            {
+                var logger = serviceProvider.GetService<Microsoft.Extensions.Logging.ILogger<AppDbContext>>();
+                logger?.LogWarning(ex, "Schema evolution check encountered a non-fatal warning: {Message}", ex.Message);
+            }
+        }
 
         var now = DateTime.UtcNow;
 

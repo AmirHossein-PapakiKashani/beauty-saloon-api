@@ -32,9 +32,8 @@ if (!app.Environment.IsEnvironment("Testing"))
     catch (Exception ex)
     {
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
-        logger.LogCritical(ex, "FATAL: Database connection or seeding failed on startup. Verify PostgreSQL is running and ConnectionStrings:DefaultConnection is correct. Error: {Message}", ex.Message);
-        Console.Error.WriteLine($"[CRITICAL STARTUP ERROR] Database connection or seeding failed: {ex.Message}");
-        throw;
+        logger.LogError(ex, "Database connection or seeding failed on startup. Verify PostgreSQL is running and ConnectionStrings:DefaultConnection is correct. Error: {Message}", ex.Message);
+        Console.Error.WriteLine($"[STARTUP DATABASE ERROR] Database connection or seeding failed: {ex.Message}");
     }
 }
 
