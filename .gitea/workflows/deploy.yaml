@@ -9,6 +9,7 @@ jobs:
 
     env:
       version: ""
+      DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
 
     steps:
       - name: Checkout repository
@@ -59,6 +60,19 @@ jobs:
 
       - name: Publish
         run: dotnet publish src/BarberSalon.API/BarberSalon.API.csproj --configuration Release --output "C:\inetpub\wwwroot\luminous" --no-restore
+
+      - name: Inject production secrets into appsettings
+        shell: powershell
+        run: |
+          $deployPath   = "C:\inetpub\wwwroot\luminous"
+          $settingsFile = "$deployPath\appsettings.Production.json"
+
+          # Patch only ConnectionStrings:DefaultConnection — everything else stays intact
+          $json = Get-Content $settingsFile -Raw | ConvertFrom-Json
+          $json.ConnectionStrings.DefaultConnection = "$env:DB_CONNECTION_STRING"
+          $json | ConvertTo-Json -Depth 10 | Set-Content $settingsFile -Encoding UTF8
+
+          Write-Host "appsettings.Production.json patched with production connection string."
 
       - name: Bring application online & configure permissions
         shell: powershell
