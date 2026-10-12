@@ -37,21 +37,24 @@ public sealed class StaffMemberConfiguration : IEntityTypeConfiguration<StaffMem
             .HasMaxLength(2000);
 
         builder.Property(s => s.Specialties)
+            .IsRequired(false)
             .HasConversion(
-                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
+                v => JsonSerializer.Serialize(v ?? new List<string>(), (JsonSerializerOptions?)null),
+                v => string.IsNullOrWhiteSpace(v) ? new List<string>() : JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
             );
 
         builder.Property(s => s.ServiceIds)
+            .IsRequired(false)
             .HasConversion(
-                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                v => JsonSerializer.Deserialize<List<Guid>>(v, (JsonSerializerOptions?)null) ?? new List<Guid>()
+                v => JsonSerializer.Serialize(v ?? new List<Guid>(), (JsonSerializerOptions?)null),
+                v => string.IsNullOrWhiteSpace(v) ? new List<Guid>() : JsonSerializer.Deserialize<List<Guid>>(v, (JsonSerializerOptions?)null) ?? new List<Guid>()
             );
 
         builder.Property(s => s.ServicePrices)
+            .IsRequired(false)
             .HasConversion(
-                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                v => JsonSerializer.Deserialize<Dictionary<Guid, decimal>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<Guid, decimal>()
+                v => JsonSerializer.Serialize(v ?? new Dictionary<Guid, decimal>(), (JsonSerializerOptions?)null),
+                v => string.IsNullOrWhiteSpace(v) ? new Dictionary<Guid, decimal>() : JsonSerializer.Deserialize<Dictionary<Guid, decimal>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<Guid, decimal>()
             );
 
         builder.HasIndex(s => s.Slug)

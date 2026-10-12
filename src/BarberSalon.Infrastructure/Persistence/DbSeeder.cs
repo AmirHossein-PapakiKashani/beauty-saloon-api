@@ -35,6 +35,9 @@ public static class DbSeeder
                 await context.Database.ExecuteSqlRawAsync(@"
                     ALTER TABLE IF EXISTS ""Users"" ADD COLUMN IF NOT EXISTS ""LastActiveAt"" timestamp with time zone;
                     ALTER TABLE IF EXISTS ""StaffMembers"" ADD COLUMN IF NOT EXISTS ""ServicePrices"" text;
+                    UPDATE ""StaffMembers"" SET ""ServicePrices"" = '{}' WHERE ""ServicePrices"" IS NULL;
+                    UPDATE ""StaffMembers"" SET ""Specialties"" = '[]' WHERE ""Specialties"" IS NULL;
+                    UPDATE ""StaffMembers"" SET ""ServiceIds"" = '[]' WHERE ""ServiceIds"" IS NULL;
                     CREATE TABLE IF NOT EXISTS ""Salons"" (
                         ""Id"" uuid NOT NULL PRIMARY KEY,
                         ""Name"" character varying(100) NOT NULL,
