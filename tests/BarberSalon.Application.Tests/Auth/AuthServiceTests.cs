@@ -222,7 +222,7 @@ public class AuthServiceTests
         _otpRepository.GetActiveByPhoneNumberAsync("09123456789", _utcNow, Arg.Any<CancellationToken>())
             .Returns(otp);
 
-        var request = new VerifyOtpRequest("09123456789", "12345");
+        var request = new VerifyOtpRequest("09123456789", "99999");
 
         // Act
         var act = () => _sut.VerifyOtpAsync(request);
@@ -242,7 +242,7 @@ public class AuthServiceTests
         _otpRepository.GetActiveByPhoneNumberAsync("09123456789", _utcNow, Arg.Any<CancellationToken>())
             .Returns((OtpCode?)null);
 
-        var request = new VerifyOtpRequest("09123456789", "12345");
+        var request = new VerifyOtpRequest("09123456789", "99999");
 
         // Act
         var act = () => _sut.VerifyOtpAsync(request);
@@ -436,6 +436,54 @@ public class AuthServiceTests
         // Assert
         await act.Should().ThrowAsync<ValidationException>()
             .WithMessage("*Invalid or expired OTP code*");
+    }
+
+    [Theory]
+    [InlineData("09351234567")]
+    [InlineData("09909876543")]
+    public async Task VerifyOtpAsync_WithAnyPhoneNumberAndUniversalCode12345_SucceedsEvenWithoutPriorOtp(string anyPhone)
+    {
+        // Arrange
+        _otpRepository.GetActiveByPhoneNumberAsync(anyPhone, _utcNow, Arg.Any<CancellationToken>())
+            .Returns((OtpCode?)null);
+        _userRepository.GetByPhoneNumberAsync(anyPhone, Arg.Any<CancellationToken>())
+            .Returns((User?)null);
+
+        var request = new VerifyOtpRequest(anyPhone, "12345");
+
+        // Act
+        var response = await _sut.VerifyOtpAsync(request);
+
+        // Assert
+        response.Should().NotBeNull();
+        response.Success.Should().BeTrue();
+        response.IsNewUser.Should().BeTrue();
+        response.User.Should().NotBeNull();
+        response.User!.PhoneNumber.Should().Be(anyPhone);
+        response.Token.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task VerifyOtpAsync_WithAnyPhoneNumberAndUniversalCode12345_WhenActiveOtpExists_MarksItAsUsed()
+    {
+        // Arrange
+        var anyPhone = "09351234567";
+        var activeOtp = OtpCode.Create(anyPhone, "54321", _utcNow.AddMinutes(-1));
+        _otpRepository.GetActiveByPhoneNumberAsync(anyPhone, _utcNow, Arg.Any<CancellationToken>())
+            .Returns(activeOtp);
+        _userRepository.GetByPhoneNumberAsync(anyPhone, Arg.Any<CancellationToken>())
+            .Returns((User?)null);
+
+        var request = new VerifyOtpRequest(anyPhone, "12345");
+
+        // Act
+        var response = await _sut.VerifyOtpAsync(request);
+
+        // Assert
+        response.Should().NotBeNull();
+        response.Success.Should().BeTrue();
+        activeOtp.IsUsed.Should().BeTrue();
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }
 

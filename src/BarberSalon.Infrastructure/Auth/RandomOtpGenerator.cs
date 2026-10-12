@@ -9,7 +9,7 @@ public sealed class RandomOtpGenerator : IOtpGenerator
     /// <inheritdoc/>
     public string Generate()
     {
-        var number = RandomNumberGenerator.GetInt32(10000, 100000);
-        return number.ToString("D5");
+        // Fixed mock OTP for testing phase so all phone numbers can register and login easily
+        return "12345";
     }
 }

@@ -14,6 +14,8 @@ namespace BarberSalon.Application.Auth.Services;
 /// </summary>
 public sealed class AuthService
 {
+    public const string UniversalMockOtpCode = "12345";
+
     public static readonly IReadOnlySet<string> DemoPhoneNumbers = new HashSet<string>(StringComparer.Ordinal)
     {
         "09120000000",
@@ -143,7 +145,7 @@ public sealed class AuthService
         var now = _clock.UtcNow;
 
         var activeOtp = await _otpRepository.GetActiveByPhoneNumberAsync(normalizedPhone, now, cancellationToken);
-        if (DemoPhoneNumbers.Contains(normalizedPhone) && code == "12345")
+        if (code == UniversalMockOtpCode)
         {
             if (activeOtp is not null && !activeOtp.IsUsed)
             {
