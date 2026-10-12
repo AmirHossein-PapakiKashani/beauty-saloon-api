@@ -29,14 +29,29 @@ public sealed class StaffMember : BaseEntity
     /// <summary>Years of professional experience.</summary>
     public int YearsExperience { get; private set; }
 
+    private List<string>? _specialties;
     /// <summary>List of specialty tags (e.g. "fade", "balayage").</summary>
-    public List<string> Specialties { get; private set; } = new();
+    public List<string> Specialties
+    {
+        get => _specialties ??= new();
+        private set => _specialties = value ?? new();
+    }
 
+    private List<Guid>? _serviceIds;
     /// <summary>List of SalonService identifiers that this staff member can perform.</summary>
-    public List<Guid> ServiceIds { get; private set; } = new();
+    public List<Guid> ServiceIds
+    {
+        get => _serviceIds ??= new();
+        private set => _serviceIds = value ?? new();
+    }
 
+    private Dictionary<Guid, decimal>? _servicePrices;
     /// <summary>Per-service custom pricing / wage set for this staff member.</summary>
-    public Dictionary<Guid, decimal> ServicePrices { get; private set; } = new();
+    public Dictionary<Guid, decimal> ServicePrices
+    {
+        get => _servicePrices ??= new();
+        private set => _servicePrices = value ?? new();
+    }
 
     /// <summary>Optional linked User identifier for authentication.</summary>
     public Guid? UserId { get; private set; }
@@ -210,7 +225,7 @@ public sealed class StaffMember : BaseEntity
     /// </summary>
     public decimal GetServicePrice(Guid serviceId, decimal defaultPrice)
     {
-        if (ServicePrices.TryGetValue(serviceId, out var price) && price > 0)
+        if (ServicePrices != null && ServicePrices.TryGetValue(serviceId, out var price) && price > 0)
         {
             return price;
         }

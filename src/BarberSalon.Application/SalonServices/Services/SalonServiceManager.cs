@@ -154,7 +154,7 @@ public sealed class SalonServiceManager
 
         if (activeStaff != null)
         {
-            var offeringStaff = activeStaff.Where(st => st.ServiceIds.Contains(s.Id)).ToList();
+            var offeringStaff = activeStaff.Where(st => st.ServiceIds != null && st.ServiceIds.Contains(s.Id)).ToList();
             if (offeringStaff.Count > 0)
             {
                 var prices = offeringStaff.Select(st => st.GetServicePrice(s.Id, s.Price)).ToList();
