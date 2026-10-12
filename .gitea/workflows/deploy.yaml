@@ -34,11 +34,12 @@ jobs:
 
           Start-Sleep -Seconds 2
 
-          # Remove old files except web.config and app_offline.htm
+          # Remove old files except web.config, logs, and app_offline.htm
           Get-ChildItem $deployPath |
               Where-Object {
                   $_.Name -ne "web.config" -and
-                  $_.Name -ne "app_offline.htm"
+                  $_.Name -ne "app_offline.htm" -and
+                  $_.Name -ne "logs"
               } |
               Remove-Item -Recurse -Force
 
@@ -48,14 +49,35 @@ jobs:
       - name: Publish
         run: dotnet publish src/BarberSalon.API/BarberSalon.API.csproj --configuration Release --output "C:\inetpub\wwwroot\luminous" --no-restore
 
-      - name: Bring application online
+      - name: Bring application online & configure permissions
         shell: powershell
         run: |
           $deployPath = "C:\inetpub\wwwroot\luminous"
 
-          Remove-Item "$deployPath\app_offline.htm" -Force
+          # 1. Ensure logs directory exists for stdout
+          if (-not (Test-Path "$deployPath\logs")) {
+              New-Item -ItemType Directory -Path "$deployPath\logs" -Force | Out-Null
+          }
 
-          Write-Host "New version is online."
+          # 2. Grant permissions to IIS users
+          icacls "$deployPath" /grant "IIS_IUSRS:(OI)(CI)RX" /t | Out-Null
+          icacls "$deployPath\logs" /grant "IIS_IUSRS:(OI)(CI)M" /t | Out-Null
+
+          # 3. Bring application online
+          if (Test-Path "$deployPath\app_offline.htm") {
+              Remove-Item "$deployPath\app_offline.htm" -Force
+          }
+
+          # 4. Touch web.config to trigger IIS application pool recycle
+          if (Test-Path "$deployPath\web.config") {
+              (Get-Item "$deployPath\web.config").LastWriteTime = Get-Date
+          }
+
+          # 5. Recycle AppPool via WebAdministration if available
+          Import-Module WebAdministration -ErrorAction SilentlyContinue
+          Restart-WebAppPool -Name "luminous" -ErrorAction SilentlyContinue
+
+          Write-Host "Application deployed, permissions set, and IIS notified."
 
       - name: Show published files
         run: Get-ChildItem "C:\inetpub\wwwroot\luminous" -Recurse
