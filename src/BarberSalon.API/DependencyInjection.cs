@@ -31,7 +31,11 @@ public static class DependencyInjection
         var defaultOrigins = new[]
         {
             "http://localhost:3000",
+            "http://localhost:3500",
+            "http://localhost:3001",
             "http://localhost:3150",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:3500",
             "http://127.0.0.1:3150",
             "https://luminous.thetechflow.ir",
             "http://luminous.thetechflow.ir"
