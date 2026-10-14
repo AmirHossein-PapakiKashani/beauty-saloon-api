@@ -2,6 +2,7 @@ using BarberSalon.API.Common;
 using BarberSalon.Application.Common.Exceptions;
 using BarberSalon.Application.Staff.DTOs;
 using BarberSalon.Application.Staff.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BarberSalon.API.Controllers;
@@ -161,6 +162,122 @@ public sealed class StaffController : ControllerBase
         {
             return NotFound(new ApiResponse<object?>(null, false, ex.Message));
         }
+    }
+
+    /// <summary>Returns the authenticated staff member's profile.</summary>
+    [HttpGet("me")]
+    [Authorize(Policy = "StaffOrAdmin")]
+    [ProducesResponseType(typeof(ApiResponse<StaffDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetMe(CancellationToken cancellationToken = default)
+    {
+        var staffDto = await ResolveCurrentStaffAsync(cancellationToken);
+        if (staffDto == null)
+        {
+            return NotFound(new ApiResponse<object?>(null, false, "پروفایل پرسنل برای کاربر جاری یافت نشد."));
+        }
+
+        return Ok(ApiResponse<StaffDto>.CreateSuccess(staffDto, "پروفایل پرسنل با موفقیت دریافت شد."));
+    }
+
+    /// <summary>Allows a staff member to self-update their bio and avatar.</summary>
+    [HttpPatch("me/profile")]
+    [HttpPut("me/profile")]
+    [Authorize(Policy = "StaffOrAdmin")]
+    [ProducesResponseType(typeof(ApiResponse<StaffDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateSelfProfile(
+        [FromBody] UpdateStaffSelfProfileRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var staffDto = await ResolveCurrentStaffAsync(cancellationToken);
+        if (staffDto == null)
+        {
+            return NotFound(new ApiResponse<object?>(null, false, "پروفایل پرسنل برای کاربر جاری یافت نشد."));
+        }
+
+        try
+        {
+            var updated = await _staffService.UpdateSelfProfileAsync(staffDto.Id, request, cancellationToken);
+            return Ok(ApiResponse<StaffDto>.CreateSuccess(updated, "پروفایل پرسنل با موفقیت ویرایش شد."));
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new ApiResponse<object?>(null, false, ex.Message));
+        }
+    }
+
+    /// <summary>Returns earnings, completed appointments, and commissions for the authenticated staff member.</summary>
+    [HttpGet("me/earnings")]
+    [Authorize(Policy = "StaffOrAdmin")]
+    [ProducesResponseType(typeof(ApiResponse<StaffEarningsDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetMyEarnings(
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null,
+        CancellationToken cancellationToken = default)
+    {
+        var staffDto = await ResolveCurrentStaffAsync(cancellationToken);
+        if (staffDto == null)
+        {
+            return NotFound(new ApiResponse<object?>(null, false, "پروفایل پرسنل برای کاربر جاری یافت نشد."));
+        }
+
+        var earnings = await _staffService.GetStaffEarningsAsync(staffDto.Id, startDate, endDate, cancellationToken);
+        return Ok(ApiResponse<StaffEarningsDto>.CreateSuccess(earnings, "گزارش درآمد پرسنل با موفقیت دریافت شد."));
+    }
+
+    /// <summary>Returns earnings and commissions for a specific staff member. Admin only.</summary>
+    [HttpGet("{id:guid}/earnings")]
+    [Authorize(Policy = "AdminOnly")]
+    [ProducesResponseType(typeof(ApiResponse<StaffEarningsDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetStaffEarnings(
+        Guid id,
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var earnings = await _staffService.GetStaffEarningsAsync(id, startDate, endDate, cancellationToken);
+            return Ok(ApiResponse<StaffEarningsDto>.CreateSuccess(earnings, "گزارش درآمد پرسنل با موفقیت دریافت شد."));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ApiResponse<object?>(null, false, ex.Message));
+        }
+    }
+
+    private async Task<StaffDto?> ResolveCurrentStaffAsync(CancellationToken cancellationToken)
+    {
+        var staffIdClaim = User.FindFirst("StaffId")?.Value ?? User.FindFirst("staff_id")?.Value;
+        if (!string.IsNullOrWhiteSpace(staffIdClaim) && Guid.TryParse(staffIdClaim, out var staffGuid))
+        {
+            try
+            {
+                return await _staffService.GetByIdAsync(staffGuid, cancellationToken);
+            }
+            catch (NotFoundException) { }
+        }
+
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst("sub")?.Value;
+        if (!string.IsNullOrWhiteSpace(userIdStr) && Guid.TryParse(userIdStr, out var userId))
+        {
+            var staff = await _staffService.GetByUserIdAsync(userId, cancellationToken);
+            if (staff != null) return staff;
+        }
+
+        var phone = User.FindFirst(System.Security.Claims.ClaimTypes.MobilePhone)?.Value;
+        if (!string.IsNullOrWhiteSpace(phone))
+        {
+            var staff = await _staffService.GetByPhoneNumberAsync(phone, cancellationToken);
+            if (staff != null) return staff;
+        }
+
+        return null;
     }
 }
 

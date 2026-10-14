@@ -78,6 +78,20 @@ public sealed class StaffService
         return staff.Select(MapToDto).ToList();
     }
 
+    /// <summary>Returns a staff member by linked user ID, or null if not found.</summary>
+    public async Task<StaffDto?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var member = await _repository.GetByUserIdAsync(userId, cancellationToken);
+        return member != null ? MapToDto(member) : null;
+    }
+
+    /// <summary>Returns a staff member by phone number, or null if not found.</summary>
+    public async Task<StaffDto?> GetByPhoneNumberAsync(string phoneNumber, CancellationToken cancellationToken = default)
+    {
+        var member = await _repository.GetByPhoneNumberAsync(phoneNumber, cancellationToken);
+        return member != null ? MapToDto(member) : null;
+    }
+
     /// <summary>Creates a new staff member.</summary>
     /// <exception cref="ValidationException">Thrown when slug already exists.</exception>
     public async Task<StaffDto> CreateAsync(CreateStaffRequest request, CancellationToken cancellationToken = default)

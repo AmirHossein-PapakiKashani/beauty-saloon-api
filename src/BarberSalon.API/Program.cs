@@ -20,6 +20,9 @@ app.UseStaticFiles();
 
 app.UseCors(BarberSalon.API.DependencyInjection.CorsPolicyName);
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 // Seed initial database state if empty (skip during integration testing)

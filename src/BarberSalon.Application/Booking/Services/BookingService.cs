@@ -601,6 +601,121 @@ public sealed class BookingService
     }
 
     /// <summary>
+    /// Returns all appointments for a given staff member on a specific date, ordered by start time.
+    /// </summary>
+    public async Task<List<AppointmentDto>> GetAppointmentsByStaffAndDateAsync(
+        Guid staffId,
+        DateOnly date,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var appointments = await _appointmentRepository.GetByStaffAndDateAsync(staffId, date, cancellationToken);
+        if (appointments.Count == 0)
+        {
+            return new List<AppointmentDto>();
+        }
+
+        var customerIds = appointments.Select(a => a.CustomerId).Distinct().ToList();
+        var serviceIds = appointments.Select(a => a.SalonServiceId).Distinct().ToList();
+
+        var customerDict = new Dictionary<Guid, (string FullName, string PhoneNumber)>();
+        foreach (var cId in customerIds)
+        {
+            var user = await _userRepository.GetByIdAsync(cId, cancellationToken);
+            if (user != null)
+            {
+                customerDict[cId] = (user.FullName, user.PhoneNumber);
+            }
+        }
+
+        var staff = await _staffRepository.GetByIdAsync(staffId, cancellationToken);
+        var staffName = staff?.FullName ?? "پرسنل";
+
+        var serviceDict = new Dictionary<Guid, string>();
+        foreach (var sId in serviceIds)
+        {
+            var service = await _salonServiceRepository.GetByIdAsync(sId, cancellationToken);
+            if (service != null)
+            {
+                serviceDict[sId] = service.Name;
+            }
+        }
+
+        return appointments
+            .OrderBy(a => a.TimeSlot.StartTime)
+            .Select(a =>
+            {
+                var cust = customerDict.TryGetValue(a.CustomerId, out var c) ? c : (FullName: "مشتری", PhoneNumber: "");
+                return MapToDto(
+                    a,
+                    cust.FullName,
+                    staffName,
+                    serviceDict.GetValueOrDefault(a.SalonServiceId, "سرویس"),
+                    cust.PhoneNumber
+                );
+            }).ToList();
+    }
+
+    /// <summary>
+    /// Returns all appointments for a given staff member across all dates, ordered by date and start time.
+    /// </summary>
+    public async Task<List<AppointmentDto>> GetAppointmentsByStaffIdAsync(
+        Guid staffId,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var allAppointments = await _appointmentRepository.GetAllAsync(cancellationToken);
+        var appointments = allAppointments.Where(a => a.StaffId == staffId).ToList();
+        if (appointments.Count == 0)
+        {
+            return new List<AppointmentDto>();
+        }
+
+        var customerIds = appointments.Select(a => a.CustomerId).Distinct().ToList();
+        var serviceIds = appointments.Select(a => a.SalonServiceId).Distinct().ToList();
+
+        var customerDict = new Dictionary<Guid, (string FullName, string PhoneNumber)>();
+        foreach (var cId in customerIds)
+        {
+            var user = await _userRepository.GetByIdAsync(cId, cancellationToken);
+            if (user != null)
+            {
+                customerDict[cId] = (user.FullName, user.PhoneNumber);
+            }
+        }
+
+        var staff = await _staffRepository.GetByIdAsync(staffId, cancellationToken);
+        var staffName = staff?.FullName ?? "پرسنل";
+
+        var serviceDict = new Dictionary<Guid, string>();
+        foreach (var sId in serviceIds)
+        {
+            var service = await _salonServiceRepository.GetByIdAsync(sId, cancellationToken);
+            if (service != null)
+            {
+                serviceDict[sId] = service.Name;
+            }
+        }
+
+        return appointments
+            .OrderByDescending(a => a.TimeSlot.Date)
+            .ThenBy(a => a.TimeSlot.StartTime)
+            .Select(a =>
+            {
+                var cust = customerDict.TryGetValue(a.CustomerId, out var c) ? c : (FullName: "مشتری", PhoneNumber: "");
+                return MapToDto(
+                    a,
+                    cust.FullName,
+                    staffName,
+                    serviceDict.GetValueOrDefault(a.SalonServiceId, "سرویس"),
+                    cust.PhoneNumber
+                );
+            }).ToList();
+    }
+
+    /// <summary>
     /// Calculates available time slots for a given date and optional staff member.
     /// </summary>
     /// <param name="dateString">The requested booking date in ISO format (yyyy-MM-dd).</param>

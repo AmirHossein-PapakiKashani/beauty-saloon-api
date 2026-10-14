@@ -9,6 +9,7 @@ using BarberSalon.Application.Portfolio.Services;
 using BarberSalon.Application.Reminders.Services;
 using BarberSalon.Application.Reviews.Services;
 using BarberSalon.Application.SalonServices.Services;
+using BarberSalon.Application.Staff.Interfaces;
 using BarberSalon.Application.Staff.Services;
 using BarberSalon.Application.StaffPerformance.Services;
 using BarberSalon.Application.Waitlist.Services;
@@ -60,10 +61,23 @@ public static class DependencyInjection
         services.AddScoped<SalonServiceManager>();
         services.AddScoped<StaffService>();
         services.AddScoped<StaffPerformanceService>();
+        services.AddScoped<StaffLeaveService>();
+        services.AddScoped<IStaffLeaveService, StaffLeaveService>();
         services.AddScoped<BeautyProfileService>();
         services.AddScoped<UserService>();
         services.AddScoped<WaitlistService>();
         services.AddScoped<PlatformAdminService>();
+
+        services.AddAuthentication("Bearer")
+            .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, BarberSalon.API.Authentication.TokenAuthenticationHandler>("Bearer", null);
+
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("AdminOnly", policy => policy.RequireRole(BarberSalon.Domain.Auth.Enums.UserRole.Admin.ToString(), BarberSalon.Domain.Auth.Enums.UserRole.SuperAdmin.ToString()));
+            options.AddPolicy("StaffOnly", policy => policy.RequireRole(BarberSalon.Domain.Auth.Enums.UserRole.Staff.ToString()));
+            options.AddPolicy("StaffOrAdmin", policy => policy.RequireRole(BarberSalon.Domain.Auth.Enums.UserRole.Staff.ToString(), BarberSalon.Domain.Auth.Enums.UserRole.Admin.ToString(), BarberSalon.Domain.Auth.Enums.UserRole.SuperAdmin.ToString()));
+        });
+
         services.AddInfrastructure(configuration);
         return services;
     }

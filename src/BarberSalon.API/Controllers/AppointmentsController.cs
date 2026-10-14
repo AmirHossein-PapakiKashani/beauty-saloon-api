@@ -28,6 +28,7 @@ public sealed class AppointmentsController : ControllerBase
     /// Returns appointments filtered by customer ID, date, or other query parameters.
     /// </summary>
     /// <param name="customerId">Optional customer identifier filter.</param>
+    /// <param name="staffId">Optional staff identifier filter.</param>
     /// <param name="date">Optional date filter in yyyy-MM-dd format.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A list of appointments wrapped in the standard response envelope.</returns>
@@ -37,9 +38,54 @@ public sealed class AppointmentsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAppointments(
         [FromQuery] Guid? customerId = null,
+        [FromQuery] Guid? staffId = null,
         [FromQuery] string? date = null,
         CancellationToken cancellationToken = default)
     {
+        if (User.IsInRole("Staff"))
+        {
+            var currentStaffId = GetCurrentStaffId();
+            if (currentStaffId.HasValue)
+            {
+                if (staffId.HasValue && staffId.Value != currentStaffId.Value)
+                {
+                    return Forbid();
+                }
+                staffId = currentStaffId.Value;
+            }
+        }
+
+        if (staffId.HasValue && !string.IsNullOrWhiteSpace(date))
+        {
+            if (!DateOnly.TryParseExact(date.Trim(), "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var parsedDate))
+            {
+                return BadRequest(new ApiResponse<object?>(null, false, $"Invalid date format '{date}'. Expected yyyy-MM-dd format."));
+            }
+
+            try
+            {
+                var appointments = await _bookingService.GetAppointmentsByStaffAndDateAsync(staffId.Value, parsedDate, cancellationToken);
+                return Ok(ApiResponse<List<AppointmentDto>>.CreateSuccess(appointments, "Staff appointments for date retrieved successfully."));
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new ApiResponse<object?>(null, false, ex.Message));
+            }
+        }
+
+        if (staffId.HasValue)
+        {
+            try
+            {
+                var appointments = await _bookingService.GetAppointmentsByStaffIdAsync(staffId.Value, cancellationToken);
+                return Ok(ApiResponse<List<AppointmentDto>>.CreateSuccess(appointments, "Staff appointments retrieved successfully."));
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new ApiResponse<object?>(null, false, ex.Message));
+            }
+        }
+
         if (customerId.HasValue)
         {
             try
@@ -243,6 +289,63 @@ public sealed class AppointmentsController : ControllerBase
         {
             return NotFound(new ApiResponse<object?>(null, false, ex.Message));
         }
+    }
+
+    /// <summary>
+    /// Records a delay in minutes for an appointment in progress or confirmed.
+    /// </summary>
+    [HttpPost("{id:guid}/delay")]
+    [ProducesResponseType(typeof(ApiResponse<AppointmentDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RecordDelay(
+        Guid id,
+        [FromBody] RecordDelayRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var result = await _bookingService.RecordDelayAsync(id, request.Minutes, cancellationToken);
+            return Ok(ApiResponse<AppointmentDto>.CreateSuccess(result, $"تاخیر {request.Minutes} دقیقه‌ای با موفقیت ثبت شد."));
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new ApiResponse<object?>(null, false, ex.Message));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ApiResponse<object?>(null, false, ex.Message));
+        }
+    }
+
+    private Guid? GetCurrentStaffId()
+    {
+        var staffIdClaim = User.FindFirst("StaffId")?.Value ?? User.FindFirst("staff_id")?.Value;
+        if (!string.IsNullOrWhiteSpace(staffIdClaim) && Guid.TryParse(staffIdClaim, out var staffGuid))
+        {
+            return staffGuid;
+        }
+
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst("sub")?.Value;
+        var phone = User.FindFirst(System.Security.Claims.ClaimTypes.MobilePhone)?.Value;
+
+        var staffRepo = HttpContext.RequestServices.GetService<BarberSalon.Application.Staff.Interfaces.IStaffRepository>();
+        if (staffRepo != null)
+        {
+            if (Guid.TryParse(userIdStr, out var userId))
+            {
+                var staff = staffRepo.GetByUserIdAsync(userId).GetAwaiter().GetResult();
+                if (staff != null) return staff.Id;
+            }
+            if (!string.IsNullOrWhiteSpace(phone))
+            {
+                var staff = staffRepo.GetByPhoneNumberAsync(phone).GetAwaiter().GetResult();
+                if (staff != null) return staff.Id;
+            }
+        }
+
+        return null;
     }
 }
 
