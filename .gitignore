@@ -50,3 +50,5 @@ appsettings.Development.json
 # Agents / Superpowers internal
 .agents/
 .superpowers/
+.investigation/
+task-*/
