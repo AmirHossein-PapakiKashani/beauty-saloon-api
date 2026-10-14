@@ -31,6 +31,7 @@ public sealed class BookingService
     private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IClock _clock;
+    private readonly IStaffLeaveRequestRepository? _leaveRequestRepository;
 
     /// <summary>
     /// Initializes a new instance of <see cref="BookingService"/> with all required dependencies.
@@ -41,13 +42,15 @@ public sealed class BookingService
     /// <param name="userRepository">Repository for user/customer identities.</param>
     /// <param name="unitOfWork">Unit of work for persistence.</param>
     /// <param name="clock">Time provider abstraction.</param>
+    /// <param name="leaveRequestRepository">Optional repository for staff leave requests.</param>
     public BookingService(
         IAppointmentRepository appointmentRepository,
         IStaffRepository staffRepository,
         ISalonServiceRepository salonServiceRepository,
         IUserRepository userRepository,
         IUnitOfWork unitOfWork,
-        IClock clock)
+        IClock clock,
+        IStaffLeaveRequestRepository? leaveRequestRepository = null)
     {
         _appointmentRepository = appointmentRepository;
         _staffRepository = staffRepository;
@@ -55,7 +58,9 @@ public sealed class BookingService
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
         _clock = clock;
+        _leaveRequestRepository = leaveRequestRepository;
     }
+
 
     /// <summary>
     /// Backward-compatible constructor for availability queries.
@@ -242,8 +247,25 @@ public sealed class BookingService
                 case "confirmed":
                     appointment.Confirm();
                     break;
+                case "in_progress":
+                case "inprogress":
+                    appointment.StartService();
+                    break;
                 case "completed":
-                    appointment.Complete();
+                    var staffForCommission = await _staffRepository.GetByIdAsync(appointment.StaffId, cancellationToken);
+                    var commissionRate = 0m;
+                    if (staffForCommission != null)
+                    {
+                        if (staffForCommission.ServiceCommissionRates.TryGetValue(appointment.SalonServiceId, out var overrideRate))
+                        {
+                            commissionRate = overrideRate;
+                        }
+                        else
+                        {
+                            commissionRate = staffForCommission.DefaultCommissionRate;
+                        }
+                    }
+                    appointment.Complete(commissionRate);
                     break;
                 case "cancelled":
                     appointment.Cancel(reason);
@@ -268,8 +290,39 @@ public sealed class BookingService
         var staff = await _staffRepository.GetByIdAsync(appointment.StaffId, cancellationToken);
         var service = await _salonServiceRepository.GetByIdAsync(appointment.SalonServiceId, cancellationToken);
 
-        return MapToDto(appointment, user?.FullName, staff?.FullName, service?.Name);
+        return MapToDto(appointment, user?.FullName, staff?.FullName, service?.Name, user?.PhoneNumber);
     }
+
+    /// <summary>
+    /// Records a delay in minutes for an appointment in progress or confirmed.
+    /// </summary>
+    public async Task<AppointmentDto> RecordDelayAsync(
+        Guid id,
+        int delayMinutes,
+        CancellationToken cancellationToken = default)
+    {
+        var appointment = await _appointmentRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new NotFoundException(nameof(Appointment), id);
+
+        try
+        {
+            appointment.RecordDelay(delayMinutes);
+        }
+        catch (DomainException ex)
+        {
+            throw new ValidationException(ex.Message);
+        }
+
+        _appointmentRepository.Update(appointment);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        var user = await _userRepository.GetByIdAsync(appointment.CustomerId, cancellationToken);
+        var staff = await _staffRepository.GetByIdAsync(appointment.StaffId, cancellationToken);
+        var service = await _salonServiceRepository.GetByIdAsync(appointment.SalonServiceId, cancellationToken);
+
+        return MapToDto(appointment, user?.FullName, staff?.FullName, service?.Name, user?.PhoneNumber);
+    }
+
 
     /// <summary>
     /// Updates details of an existing appointment (reschedule time, change staff, change service, update price/notes).
@@ -607,12 +660,19 @@ public sealed class BookingService
             }
 
             var staffAppointments = await _appointmentRepository.GetByStaffAndDateAsync(staffId.Value, date, cancellationToken);
+            var startOfDay = date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+            var endOfDay = date.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
+            var approvedLeaves = _leaveRequestRepository != null
+                ? await _leaveRequestRepository.GetApprovedByStaffAndDateRangeAsync(staffId.Value, startOfDay, endOfDay, cancellationToken)
+                : new List<StaffLeaveRequest>();
 
             var result = new List<TimeSlotDto>(dailySlotTimes.Count);
             foreach (var slotTime in dailySlotTimes)
             {
-                var isBlocked = staffAppointments.Any(a => a.BlocksSlot(date, slotTime));
-                result.Add(new TimeSlotDto(slotTime.ToString("HH:mm"), !isBlocked));
+                var slotDateTime = date.ToDateTime(slotTime, DateTimeKind.Utc);
+                var isBlockedByAppointment = staffAppointments.Any(a => a.BlocksSlot(date, slotTime));
+                var isBlockedByLeave = approvedLeaves.Any(l => l.StartDate <= slotDateTime && l.EndDate > slotDateTime);
+                result.Add(new TimeSlotDto(slotTime.ToString("HH:mm"), !isBlockedByAppointment && !isBlockedByLeave));
             }
 
             return result;
@@ -630,17 +690,42 @@ public sealed class BookingService
 
             var activeStaffIds = activeStaff.Select(s => s.Id).ToHashSet();
             var salonAppointments = await _appointmentRepository.GetByDateAsync(date, cancellationToken);
+            var startOfDay = date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+            var endOfDay = date.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
+
+            var allApprovedLeaves = new List<StaffLeaveRequest>();
+            if (_leaveRequestRepository != null)
+            {
+                foreach (var sId in activeStaffIds)
+                {
+                    var leaves = await _leaveRequestRepository.GetApprovedByStaffAndDateRangeAsync(sId, startOfDay, endOfDay, cancellationToken);
+                    allApprovedLeaves.AddRange(leaves);
+                }
+            }
 
             var result = new List<TimeSlotDto>(dailySlotTimes.Count);
             foreach (var slotTime in dailySlotTimes)
             {
-                var busyStaffCount = salonAppointments
-                    .Where(a => activeStaffIds.Contains(a.StaffId) && a.BlocksSlot(date, slotTime))
-                    .Select(a => a.StaffId)
-                    .Distinct()
-                    .Count();
+                var slotDateTime = date.ToDateTime(slotTime, DateTimeKind.Utc);
+                var busyStaffIds = new HashSet<Guid>();
 
-                var isAvailable = busyStaffCount < activeStaff.Count;
+                foreach (var a in salonAppointments)
+                {
+                    if (activeStaffIds.Contains(a.StaffId) && a.BlocksSlot(date, slotTime))
+                    {
+                        busyStaffIds.Add(a.StaffId);
+                    }
+                }
+
+                foreach (var l in allApprovedLeaves)
+                {
+                    if (l.StartDate <= slotDateTime && l.EndDate > slotDateTime)
+                    {
+                        busyStaffIds.Add(l.StaffMemberId);
+                    }
+                }
+
+                var isAvailable = busyStaffIds.Count < activeStaff.Count;
                 result.Add(new TimeSlotDto(slotTime.ToString("HH:mm"), isAvailable));
             }
 
@@ -652,7 +737,8 @@ public sealed class BookingService
         Appointment a,
         string? customerName,
         string? staffName,
-        string? serviceName)
+        string? serviceName,
+        string? customerPhone = null)
     {
         return new AppointmentDto(
             a.Id,
@@ -668,9 +754,14 @@ public sealed class BookingService
             a.Price,
             a.Notes,
             a.CreatedAt,
-            a.UpdatedAt
+            a.UpdatedAt,
+            customerPhone ?? string.Empty,
+            a.DelayMinutes,
+            a.CommissionRate,
+            a.CommissionEarned
         );
     }
+
 
     private static string GenerateBookingCode()
     {

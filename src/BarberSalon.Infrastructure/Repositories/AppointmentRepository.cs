@@ -83,6 +83,21 @@ public sealed class AppointmentRepository : IAppointmentRepository
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
+    public async Task<List<Appointment>> GetByStaffAndDateRangeAsync(
+        Guid staffId,
+        DateOnly startDate,
+        DateOnly endDate,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Appointments
+            .Where(a => a.StaffId == staffId && a.TimeSlot.Date >= startDate && a.TimeSlot.Date <= endDate)
+            .OrderBy(a => a.TimeSlot.Date)
+            .ThenBy(a => a.TimeSlot.StartTime)
+            .ToListAsync(cancellationToken);
+    }
+
+
 
     /// <inheritdoc />
     public async Task AddAsync(Appointment appointment, CancellationToken cancellationToken = default)

@@ -25,6 +25,10 @@ public interface IAppointmentRepository
     /// <summary>Returns all appointments within an inclusive date range.</summary>
     Task<List<Appointment>> GetByDateRangeAsync(DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken = default);
 
+    /// <summary>Returns all appointments for a given staff member within an inclusive date range.</summary>
+    Task<List<Appointment>> GetByStaffAndDateRangeAsync(Guid staffId, DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken = default);
+
+
     /// <summary>Adds a new appointment to the EF Core change tracker.</summary>
     Task AddAsync(Appointment appointment, CancellationToken cancellationToken = default);
 

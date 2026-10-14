@@ -3,6 +3,7 @@ using BarberSalon.Application.Auth.DTOs;
 using BarberSalon.Application.Auth.Interfaces;
 using BarberSalon.Application.Common.Exceptions;
 using BarberSalon.Application.Common.Interfaces;
+using BarberSalon.Application.Staff.Interfaces;
 using BarberSalon.Domain.Auth.Entities;
 using BarberSalon.Domain.Auth.Enums;
 using Microsoft.Extensions.Logging;
@@ -34,6 +35,7 @@ public sealed class AuthService
     private readonly IOtpGenerator _otpGenerator;
     private readonly IClock _clock;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IStaffRepository? _staffRepository;
     private readonly ILogger<AuthService>? _logger;
 
     /// <summary>
@@ -46,6 +48,7 @@ public sealed class AuthService
         IOtpGenerator otpGenerator,
         IClock clock,
         IUnitOfWork unitOfWork,
+        IStaffRepository? staffRepository = null,
         ILogger<AuthService>? logger = null)
     {
         _otpRepository = otpRepository;
@@ -54,8 +57,10 @@ public sealed class AuthService
         _otpGenerator = otpGenerator;
         _clock = clock;
         _unitOfWork = unitOfWork;
+        _staffRepository = staffRepository;
         _logger = logger;
     }
+
 
     /// <summary>
     /// Issues and sends a 5-digit OTP code to the requested phone number.
@@ -167,14 +172,33 @@ public sealed class AuthService
         var user = await _userRepository.GetByPhoneNumberAsync(normalizedPhone, cancellationToken);
         var isNewUser = false;
 
+        var matchingStaff = _staffRepository != null
+            ? await _staffRepository.GetByPhoneNumberAsync(normalizedPhone, cancellationToken)
+            : null;
+
         if (user is null)
         {
             isNewUser = true;
-            user = User.Create(normalizedPhone, now, UserRole.Customer);
+            var initialRole = matchingStaff != null ? UserRole.Staff : UserRole.Customer;
+            var initialName = matchingStaff?.FullName;
+
+            user = User.Create(normalizedPhone, now, initialRole, initialName);
             await _userRepository.AddAsync(user, cancellationToken);
+
+            if (matchingStaff != null)
+            {
+                matchingStaff.LinkUser(user.Id);
+                _staffRepository?.Update(matchingStaff);
+            }
+        }
+        else if (matchingStaff != null && matchingStaff.UserId != user.Id)
+        {
+            matchingStaff.LinkUser(user.Id);
+            _staffRepository?.Update(matchingStaff);
         }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
 
         var userDto = new UserDto(
             user.Id,

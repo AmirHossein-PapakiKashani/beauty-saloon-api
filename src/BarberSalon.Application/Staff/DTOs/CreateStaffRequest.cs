@@ -14,5 +14,8 @@ public record CreateStaffRequest(
     List<Guid>? Services = null,
     Guid? UserId = null,
     string? WorkingHoursJson = null,
-    Dictionary<Guid, decimal>? ServicePrices = null
+    Dictionary<Guid, decimal>? ServicePrices = null,
+    string? AvatarUrl = null,
+    decimal DefaultCommissionRate = 0m,
+    Dictionary<Guid, decimal>? ServiceCommissionRates = null
 );

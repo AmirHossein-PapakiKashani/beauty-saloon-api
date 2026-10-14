@@ -17,5 +17,9 @@ public sealed record AppointmentDto(
     decimal Price,
     string Notes,
     DateTime CreatedAt,
-    DateTime UpdatedAt
+    DateTime UpdatedAt,
+    string CustomerPhoneNumber = "",
+    int DelayMinutes = 0,
+    decimal CommissionRate = 0m,
+    decimal CommissionEarned = 0m
 );

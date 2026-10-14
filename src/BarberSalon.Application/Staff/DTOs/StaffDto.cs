@@ -19,5 +19,8 @@ public record StaffDto(
     string WorkingHoursJson,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    Dictionary<Guid, decimal>? ServicePrices = null
+    Dictionary<Guid, decimal>? ServicePrices = null,
+    string? AvatarUrl = null,
+    decimal DefaultCommissionRate = 0m,
+    Dictionary<Guid, decimal>? ServiceCommissionRates = null
 );
