@@ -174,6 +174,33 @@ public sealed class StaffController : ControllerBase
         var staffDto = await ResolveCurrentStaffAsync(cancellationToken);
         if (staffDto == null)
         {
+            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+                ?? User.FindFirst("role")?.Value;
+            if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(role, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
+            {
+                var adminStaffDto = new StaffDto(
+                    Guid.Empty,
+                    "admin",
+                    "مدیر سالن",
+                    "09120000000",
+                    "مدیر ارشد مجموعه",
+                    "مدیر سیستم",
+                    true,
+                    new List<Guid>(),
+                    0,
+                    10,
+                    new List<string> { "مدیریت", "نظارت" },
+                    "{}",
+                    DateTime.UtcNow,
+                    DateTime.UtcNow,
+                    new Dictionary<Guid, decimal>(),
+                    null,
+                    0m,
+                    new Dictionary<Guid, decimal>());
+                return Ok(ApiResponse<StaffDto>.CreateSuccess(adminStaffDto, "پروفایل پرسنل با موفقیت دریافت شد."));
+            }
+
             return NotFound(new ApiResponse<object?>(null, false, "پروفایل پرسنل برای کاربر جاری یافت نشد."));
         }
 
@@ -221,6 +248,22 @@ public sealed class StaffController : ControllerBase
         var staffDto = await ResolveCurrentStaffAsync(cancellationToken);
         if (staffDto == null)
         {
+            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+                ?? User.FindFirst("role")?.Value;
+            if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(role, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
+            {
+                var emptyEarnings = new StaffEarningsDto(
+                    Guid.Empty,
+                    "مدیر سالن",
+                    0,
+                    0m,
+                    0m,
+                    0m,
+                    new List<StaffEarningItemDto>());
+                return Ok(ApiResponse<StaffEarningsDto>.CreateSuccess(emptyEarnings, "گزارش درآمد پرسنل با موفقیت دریافت شد."));
+            }
+
             return NotFound(new ApiResponse<object?>(null, false, "پروفایل پرسنل برای کاربر جاری یافت نشد."));
         }
 
@@ -275,6 +318,17 @@ public sealed class StaffController : ControllerBase
         {
             var staff = await _staffService.GetByPhoneNumberAsync(phone, cancellationToken);
             if (staff != null) return staff;
+        }
+
+        // If caller is an Admin / SuperAdmin and has no specific StaffMember assigned,
+        // fallback to the first active staff member so admins can preview the staff portal.
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+            ?? User.FindFirst("role")?.Value;
+        if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(role, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
+        {
+            var activeStaff = (await _staffService.GetAllActiveAsync(cancellationToken)).FirstOrDefault();
+            if (activeStaff != null) return activeStaff;
         }
 
         return null;

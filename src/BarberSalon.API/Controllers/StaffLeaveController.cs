@@ -65,6 +65,14 @@ public sealed class StaffLeaveController : ControllerBase
         var staffDto = await ResolveCurrentStaffAsync(cancellationToken);
         if (staffDto == null)
         {
+            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+                ?? User.FindFirst("role")?.Value;
+            if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(role, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
+            {
+                return Ok(ApiResponse<List<StaffLeaveDto>>.CreateSuccess(new List<StaffLeaveDto>(), "لیست درخواست‌های مرخصی دریافت شد."));
+            }
+
             return NotFound(new ApiResponse<object?>(null, false, "پروفایل پرسنل برای کاربر جاری یافت نشد."));
         }
 
@@ -144,6 +152,17 @@ public sealed class StaffLeaveController : ControllerBase
         {
             var staff = await _staffService.GetByPhoneNumberAsync(phone, cancellationToken);
             if (staff != null) return staff;
+        }
+
+        // If caller is an Admin / SuperAdmin and has no specific StaffMember assigned,
+        // fallback to the first active staff member so admins can preview the staff portal.
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+            ?? User.FindFirst("role")?.Value;
+        if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(role, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
+        {
+            var activeStaff = (await _staffService.GetAllActiveAsync(cancellationToken)).FirstOrDefault();
+            if (activeStaff != null) return activeStaff;
         }
 
         return null;
