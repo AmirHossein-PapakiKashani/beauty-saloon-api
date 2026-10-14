@@ -30,6 +30,20 @@ public sealed class StaffRepository : IStaffRepository
     }
 
     /// <inheritdoc />
+    public async Task<StaffMember?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+        => await _context.StaffMembers
+            .FirstOrDefaultAsync(s => s.UserId == userId, cancellationToken);
+
+    /// <inheritdoc />
+    public async Task<StaffMember?> GetByPhoneNumberAsync(string phoneNumber, CancellationToken cancellationToken = default)
+    {
+        var normalizedPhone = phoneNumber.Trim();
+        return await _context.StaffMembers
+            .FirstOrDefaultAsync(s => s.PhoneNumber == normalizedPhone, cancellationToken);
+    }
+
+
+    /// <inheritdoc />
     public async Task<List<StaffMember>> GetAllActiveAsync(CancellationToken cancellationToken = default)
         => await _context.StaffMembers
             .Where(s => s.IsActive)

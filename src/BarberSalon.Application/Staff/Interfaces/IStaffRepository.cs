@@ -13,6 +13,13 @@ public interface IStaffRepository
     /// <summary>Returns a staff member by their URL slug, or null if not found.</summary>
     Task<StaffMember?> GetBySlugAsync(string slug, CancellationToken cancellationToken = default);
 
+    /// <summary>Returns a staff member linked to the specified application User ID, or null if not found.</summary>
+    Task<StaffMember?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>Returns a staff member with the specified phone number, or null if not found.</summary>
+    Task<StaffMember?> GetByPhoneNumberAsync(string phoneNumber, CancellationToken cancellationToken = default);
+
+
     /// <summary>Returns all active staff members ordered by full name.</summary>
     Task<List<StaffMember>> GetAllActiveAsync(CancellationToken cancellationToken = default);
 

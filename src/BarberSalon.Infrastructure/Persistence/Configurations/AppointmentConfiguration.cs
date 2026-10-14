@@ -48,6 +48,18 @@ public sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appointm
         builder.Property(a => a.Notes)
             .HasMaxLength(1000);
 
+        builder.Property(a => a.DelayMinutes)
+            .HasDefaultValue(0);
+
+        builder.Property(a => a.CommissionRate)
+            .HasPrecision(5, 2)
+            .HasDefaultValue(0m);
+
+        builder.Property(a => a.CommissionEarned)
+            .HasPrecision(18, 2)
+            .HasDefaultValue(0m);
+
+
         builder.HasIndex(a => new { a.StaffId, a.Status })
             .HasDatabaseName("IX_Appointments_StaffId_Status");
 

@@ -43,6 +43,10 @@ public class AppDbContext : DbContext, IUnitOfWork
     /// <summary>Staff members table.</summary>
     public DbSet<StaffMember> StaffMembers => Set<StaffMember>();
 
+    /// <summary>Staff leave requests table.</summary>
+    public DbSet<StaffLeaveRequest> StaffLeaveRequests => Set<StaffLeaveRequest>();
+
+
     /// <summary>Reviews table.</summary>
     public DbSet<Review> Reviews => Set<Review>();
 

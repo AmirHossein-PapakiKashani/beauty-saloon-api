@@ -57,6 +57,22 @@ public sealed class StaffMemberConfiguration : IEntityTypeConfiguration<StaffMem
                 v => string.IsNullOrWhiteSpace(v) ? new Dictionary<Guid, decimal>() : JsonSerializer.Deserialize<Dictionary<Guid, decimal>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<Guid, decimal>()
             );
 
+        builder.Property(s => s.AvatarUrl)
+            .IsRequired(false)
+            .HasMaxLength(500);
+
+        builder.Property(s => s.DefaultCommissionRate)
+            .HasColumnType("decimal(5,2)")
+            .HasDefaultValue(0m);
+
+        builder.Property(s => s.ServiceCommissionRates)
+            .IsRequired(false)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v ?? new Dictionary<Guid, decimal>(), (JsonSerializerOptions?)null),
+                v => string.IsNullOrWhiteSpace(v) ? new Dictionary<Guid, decimal>() : JsonSerializer.Deserialize<Dictionary<Guid, decimal>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<Guid, decimal>()
+            );
+
+
         builder.HasIndex(s => s.Slug)
             .IsUnique()
             .HasDatabaseName("IX_StaffMembers_Slug");

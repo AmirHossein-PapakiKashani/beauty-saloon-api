@@ -83,7 +83,15 @@ public static class DbSeeder
             context.Users.Add(customerUser2);
         }
 
+        var staffUser1 = await context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == "09121111111");
+        if (staffUser1 == null)
+        {
+            staffUser1 = User.Create("09121111111", now, UserRole.Staff, "آقای کریمی");
+            context.Users.Add(staffUser1);
+        }
+
         await context.SaveChangesAsync();
+
 
         // 2. Seed Customer Entities idempotently
         var customer1 = await context.Customers.FirstOrDefaultAsync(c => c.PhoneNumber == "09121234567");
@@ -103,7 +111,7 @@ public static class DbSeeder
         await context.SaveChangesAsync();
 
         // 3. Seed Active Demo OTPs idempotently
-        var testPhones = new[] { "09120000000", "09121234567", "09121112233" };
+        var testPhones = new[] { "09120000000", "09121234567", "09121112233", "09121111111" };
         foreach (var phone in testPhones)
         {
             var hasActiveOtp = await context.OtpCodes
@@ -137,14 +145,17 @@ public static class DbSeeder
             var staff1 = StaffMember.Create(
                 "آقای کریمی",
                 "karimi",
-                "09121234567",
+                "09121111111",
                 "آرایشگر با ۱۰ سال تجربه در زمینه کوتاهی و اصلاح مردانه. تخصص در fade، خط‌کشی و استایل‌های مدرن.",
                 "آرایشگر ارشد",
                 10,
                 specialties: new List<string> { "fade", "اصلاح صورت", "خط‌کشی" },
                 serviceIds: new List<Guid> { s1.Id, s3.Id, s7.Id },
+                userId: staffUser1.Id,
                 servicePrices: new Dictionary<Guid, decimal> { [s1.Id] = 180000m, [s3.Id] = 90000m, [s7.Id] = 130000m }
             );
+            staff1.SetCommissionRates(40m, new Dictionary<Guid, decimal> { [s1.Id] = 50m });
+
 
             var staff2 = StaffMember.Create(
                 "خانم احمدی",
