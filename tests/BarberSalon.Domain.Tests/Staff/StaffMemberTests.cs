@@ -331,4 +331,67 @@ public class StaffMemberTests
         staff.ServiceIds.Should().NotContain(serviceId);
         staff.ServicePrices.Should().NotContainKey(serviceId);
     }
+
+    [Fact]
+    public void SetCommissionRates_WithValidValues_UpdatesRates()
+    {
+        // Arrange
+        var staff = StaffMember.Create("Ali Karimi", "karimi", "09121234567", "Bio", "Barber", 5);
+        var serviceId = Guid.NewGuid();
+        var overrides = new Dictionary<Guid, decimal> { [serviceId] = 50m };
+
+        // Act
+        staff.SetCommissionRates(40m, overrides);
+
+        // Assert
+        staff.DefaultCommissionRate.Should().Be(40m);
+        staff.ServiceCommissionRates.Should().ContainKey(serviceId);
+        staff.ServiceCommissionRates[serviceId].Should().Be(50m);
+    }
+
+    [Fact]
+    public void SetCommissionRates_WithNegativeRate_ThrowsDomainException()
+    {
+        // Arrange
+        var staff = StaffMember.Create("Ali Karimi", "karimi", "09121234567", "Bio", "Barber", 5);
+
+        // Act
+        var act = () => staff.SetCommissionRates(-5m, null);
+
+        // Assert
+        act.Should().Throw<DomainException>()
+            .WithMessage("*Commission rate must be between 0 and 100*");
+    }
+
+    [Fact]
+    public void SetCommissionRates_WithRateAbove100_ThrowsDomainException()
+    {
+        // Arrange
+        var staff = StaffMember.Create("Ali Karimi", "karimi", "09121234567", "Bio", "Barber", 5);
+
+        // Act
+        var act = () => staff.SetCommissionRates(105m, null);
+
+        // Assert
+        act.Should().Throw<DomainException>()
+            .WithMessage("*Commission rate must be between 0 and 100*");
+    }
+
+    [Fact]
+    public void UpdateSelfProfile_WithValidBioAndAvatar_PreservesRoleAndRates()
+    {
+        // Arrange
+        var staff = StaffMember.Create("Ali Karimi", "karimi", "09121234567", "Old Bio", "Barber", 5);
+        staff.SetCommissionRates(40m, null);
+
+        // Act
+        staff.UpdateSelfProfile("New Updated Bio", "https://example.com/avatar.jpg");
+
+        // Assert
+        staff.Bio.Should().Be("New Updated Bio");
+        staff.AvatarUrl.Should().Be("https://example.com/avatar.jpg");
+        staff.Role.Should().Be("Barber");
+        staff.DefaultCommissionRate.Should().Be(40m);
+    }
 }
+

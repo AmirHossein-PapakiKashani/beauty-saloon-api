@@ -59,6 +59,20 @@ public sealed class StaffMember : BaseEntity
     /// <summary>Weekly working hours represented as JSON.</summary>
     public string WorkingHoursJson { get; private set; } = string.Empty;
 
+    /// <summary>Optional avatar / profile image URL.</summary>
+    public string? AvatarUrl { get; private set; }
+
+    /// <summary>Default base commission percentage (0 to 100).</summary>
+    public decimal DefaultCommissionRate { get; private set; }
+
+    private Dictionary<Guid, decimal>? _serviceCommissionRates;
+    /// <summary>Per-service commission percentage overrides (0 to 100).</summary>
+    public Dictionary<Guid, decimal> ServiceCommissionRates
+    {
+        get => _serviceCommissionRates ??= new();
+        private set => _serviceCommissionRates = value ?? new();
+    }
+
     // Private parameterless constructor required by EF Core
     private StaffMember() { }
 
@@ -202,6 +216,16 @@ public sealed class StaffMember : BaseEntity
     }
 
     /// <summary>
+    /// Links this staff member to an application user identity.
+    /// </summary>
+    public void LinkUser(Guid userId)
+    {
+        UserId = userId;
+        Touch();
+    }
+
+
+    /// <summary>
     /// Sets the custom price / wage for a specific service.
     /// </summary>
     /// <param name="serviceId">The service identifier.</param>
@@ -258,6 +282,48 @@ public sealed class StaffMember : BaseEntity
         {
             Touch();
         }
+    }
+
+    /// <summary>
+    /// Configures the base commission rate and optional per-service rate overrides.
+    /// </summary>
+    /// <param name="defaultRate">Base percentage between 0 and 100.</param>
+    /// <param name="overrides">Optional dictionary mapping service IDs to commission percentage overrides.</param>
+    public void SetCommissionRates(decimal defaultRate, Dictionary<Guid, decimal>? overrides = null)
+    {
+        if (defaultRate < 0 || defaultRate > 100)
+            throw new DomainException("Commission rate must be between 0 and 100.");
+
+        var dict = new Dictionary<Guid, decimal>();
+        if (overrides != null)
+        {
+            foreach (var kvp in overrides)
+            {
+                if (kvp.Value < 0 || kvp.Value > 100)
+                    throw new DomainException("Commission rate must be between 0 and 100.");
+                dict[kvp.Key] = kvp.Value;
+            }
+        }
+
+        DefaultCommissionRate = defaultRate;
+        ServiceCommissionRates = dict;
+        Touch();
+    }
+
+    /// <summary>
+    /// Updates staff member's self-editable profile fields (bio and avatar).
+    /// Prevents staff from modifying their own role, commission rates, or status.
+    /// </summary>
+    /// <param name="bio">Optional bio (max 1000 characters).</param>
+    /// <param name="avatarUrl">Optional avatar URL.</param>
+    public void UpdateSelfProfile(string? bio, string? avatarUrl)
+    {
+        if (bio != null && bio.Length > 1000)
+            throw new DomainException("Staff member bio cannot exceed 1000 characters.");
+
+        Bio = bio?.Trim() ?? string.Empty;
+        AvatarUrl = string.IsNullOrWhiteSpace(avatarUrl) ? null : avatarUrl.Trim();
+        Touch();
     }
 
     private static void Validate(

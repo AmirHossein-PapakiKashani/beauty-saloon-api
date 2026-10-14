@@ -177,7 +177,7 @@ public class AppointmentTests
         var act = () => appointment.Complete();
 
         act.Should().Throw<DomainException>()
-            .WithMessage("*Only confirmed appointments can be completed*");
+            .WithMessage("*appointments can be completed*");
     }
 
     [Fact]

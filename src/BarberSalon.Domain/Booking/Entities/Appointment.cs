@@ -22,11 +22,20 @@ public sealed class Appointment : BaseEntity
     /// <summary>The reserved date and time slot block.</summary>
     public TimeSlot TimeSlot { get; private set; } = default!;
 
-    /// <summary>The current lifecycle status of the appointment.</summary>
+    /// <summary>Current lifecycle status of the appointment.</summary>
     public AppointmentStatus Status { get; private set; }
 
     /// <summary>The agreed price of the service in local currency.</summary>
     public decimal Price { get; private set; }
+
+    /// <summary>Minutes of recorded service delay.</summary>
+    public int DelayMinutes { get; private set; }
+
+    /// <summary>Commission percentage rate applied to this appointment.</summary>
+    public decimal CommissionRate { get; private set; }
+
+    /// <summary>Calculated monetary commission earned by staff on this appointment.</summary>
+    public decimal CommissionEarned { get; private set; }
 
     /// <summary>Optional notes or special requests for the appointment.</summary>
     public string Notes { get; private set; } = string.Empty;
@@ -83,17 +92,56 @@ public sealed class Appointment : BaseEntity
     }
 
     /// <summary>
-    /// Marks the appointment as completed once the service has been delivered.
+    /// Starts delivery of the service by the assigned staff member.
     /// </summary>
     /// <exception cref="DomainException">Thrown when appointment is not in Confirmed status.</exception>
-    public void Complete()
+    public void StartService()
     {
         if (Status != AppointmentStatus.Confirmed)
         {
-            throw new DomainException($"Only confirmed appointments can be completed. Current status: '{Status}'.");
+            throw new DomainException($"Only confirmed appointments can be started. Current status: '{Status}'.");
+        }
+
+        Status = AppointmentStatus.InProgress;
+        Touch();
+    }
+
+    /// <summary>
+    /// Marks the appointment as completed once the service has been delivered, calculating staff commission.
+    /// </summary>
+    /// <param name="commissionRate">Staff commission percentage rate (between 0 and 100).</param>
+    /// <exception cref="DomainException">Thrown when appointment is not in Confirmed or InProgress status, or invalid rate.</exception>
+    public void Complete(decimal commissionRate = 0m)
+    {
+        if (Status != AppointmentStatus.Confirmed && Status != AppointmentStatus.InProgress)
+        {
+            throw new DomainException($"Only confirmed or in-progress appointments can be completed. Current status: '{Status}'.");
+        }
+
+        if (commissionRate < 0 || commissionRate > 100)
+        {
+            throw new DomainException("Commission rate must be between 0 and 100.");
         }
 
         Status = AppointmentStatus.Completed;
+        CommissionRate = commissionRate;
+        CommissionEarned = Math.Round(Price * (commissionRate / 100m), 2);
+        Touch();
+    }
+
+    /// <summary>
+    /// Records an operational delay in service delivery.
+    /// </summary>
+    /// <param name="minutes">Positive number of delay minutes.</param>
+    /// <exception cref="DomainException">Thrown when minutes is zero or negative.</exception>
+    public void RecordDelay(int minutes)
+    {
+        if (minutes <= 0)
+        {
+            throw new DomainException("Delay minutes must be greater than zero.");
+        }
+
+        DelayMinutes += minutes;
         Touch();
     }
 
@@ -191,6 +239,7 @@ public sealed class Appointment : BaseEntity
 
         var isBlockingStatus = Status == AppointmentStatus.Pending
             || Status == AppointmentStatus.Confirmed
+            || Status == AppointmentStatus.InProgress
             || Status == AppointmentStatus.Completed;
 
         return isBlockingStatus && TimeSlot.Contains(slotTime);

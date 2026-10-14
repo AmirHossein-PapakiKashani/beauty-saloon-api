@@ -18,5 +18,8 @@ public enum AppointmentStatus
     Cancelled = 4,
 
     /// <summary>Customer did not arrive for the appointment.</summary>
-    NoShow = 5
+    NoShow = 5,
+
+    /// <summary>Service is currently being delivered by the staff member.</summary>
+    InProgress = 6
 }
